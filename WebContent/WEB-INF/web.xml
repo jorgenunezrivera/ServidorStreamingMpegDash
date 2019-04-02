@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app>
+    <display-name>MPEG DASH Streaming Server</display-name>
+    <description>
+      An App to upload Video and stream it in MPEG Dynamic Adaptative Streaming
+    </description>
+    <!--   <request-character-encoding>UTF-8</request-character-encoding> -->
+    <servlet>
+        <servlet-name>MPDServer</servlet-name>
+        <servlet-class>DashJorge.MPDServer</servlet-class>        
+   </servlet>
+    <servlet-mapping>
+      <servlet-name>MPDServer</servlet-name>
+      <url-pattern>/MPDServer/*</url-pattern>      
+    </servlet-mapping>
+    <!-- Cors filter -->
+<filter>
+    <filter-name>CorsFilter</filter-name>
+    <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
+     <init-param>
+    <param-name>cors.request.decorate</param-name>
+    <param-value>true</param-value>
+    </init-param>
+    <init-param>
+    <param-name>cors.allowed.origins</param-name>
+    <param-value>http://dash-mse-test.appspot.com</param-value>
+  </init-param>
+</filter>
+
+<filter-mapping>
+    <filter-name>CorsFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+
+<mime-mapping>
+        <extension>mpd</extension>
+        <mime-type>application/dash+xml</mime-type>
+    </mime-mapping>
+
+<resource-ref>
+	<description>Maria DB datasource</description>
+	<res-ref-name>jdbc/mariadb</res-ref-name>
+	<res-type>javax.sql.DataSource</res-type>
+	<res-auth>Container</res-auth>
+</resource-ref>
+
+
+</web-app>
