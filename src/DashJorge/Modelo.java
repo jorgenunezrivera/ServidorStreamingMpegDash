@@ -3,9 +3,6 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.mail.smtp.SMTPSSLTransport;
 import com.sun.mail.smtp.SMTPTransport;
 
 import Exceptions.AlreadyHasThreeVideosException;
@@ -17,7 +14,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -27,11 +23,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Properties;
 
 import javax.crypto.SecretKeyFactory;
