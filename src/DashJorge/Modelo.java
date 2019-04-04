@@ -2,6 +2,10 @@ package DashJorge;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 import com.sun.mail.smtp.SMTPTransport;
 
@@ -33,6 +37,7 @@ import javax.crypto.spec.PBEKeySpec;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
+
 public class Modelo {
 	
 	private static Modelo modelo_instance = null;
@@ -40,20 +45,29 @@ public class Modelo {
 	private Properties serverProperties;
 	TimedClean clean;
 	private Modelo() {
+		Context initCtx; 
+		Context envCtx;
 		try {
-			serverProperties=new Properties();
-			InputStream input = Modelo.class.getResourceAsStream("servidor.properties");
-			serverProperties.load(input);
-			con = DriverManager.getConnection("jdbc:"+serverProperties.getProperty("dbtype")+"://"+serverProperties.getProperty("host")+":"+serverProperties.getProperty("port")+"/"+serverProperties.getProperty("dbname")+"?user="+serverProperties.getProperty("user")+"&password="+serverProperties.getProperty("pass"));
+			initCtx = new InitialContext();
+			envCtx = (Context) initCtx.lookup("java:comp/env");
+			DataSource ds = (DataSource)envCtx.lookup("jdbc/mariadb");
+			con=ds.getConnection();
+		} catch (NamingException e1) {
+			System.err.println("Imposible conectar a mariadb: nombre de recurso incorrecto");
+			e1.printStackTrace();
 		} catch (SQLException e) {
 			System.err.println("Imposible conectar a mariadb");
 			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			System.err.println("No se ha encontrado el fichero de configuracion (del servidor mysql)" + e.getMessage());
+		}
+		serverProperties=new Properties();
+		InputStream input = Modelo.class.getResourceAsStream("servidor.properties");
+		try {
+			serverProperties.load(input);
 		} catch (IOException e) {
 			System.err.println("Se ha producido un error leyendo el fichero de configuracion (del servidor mysql)");
+			
 		}
-		clean = new TimedClean();
+		clean = new TimedClean(this);
 	}
 	
 	public static Modelo getInstance() {
@@ -288,6 +302,7 @@ public class Modelo {
 			while(resultSet.next()) {
 				String fileName =resultSet.getString(1);
 				String ownerName = resultSet.getString(4);
+				System.out.println(serverProperties.getProperty("usersdir")+ownerName+"/"+fileName);
 				File file = new File(serverProperties.getProperty("usersdir")+ownerName+"/"+fileName);//Usar separador universal?
 				if(recursiveDelete(file)) {
 					PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM video WHERE filename = (?) AND owner = (?)");
@@ -299,8 +314,7 @@ public class Modelo {
 			}
 		}catch (SQLException e) {
 			System.err.println(e.getMessage());
-		}
-		
+		}		
 		return borrados;
 	}
 	

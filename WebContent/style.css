@@ -72,11 +72,54 @@ input {
 	border-width:1px;
 	border-style:solid;
 	padding:6px 18px;
-	width:21.86%;
+	width:21.81%;
 }
 
 form > p{
 	width:160px;
 	float:left;
 	padding:0px 36px;
+}
+#videosDiv{
+	min-height:300px;
+}
+
+div .videoContainer{
+	float:left;
+	width:29%;
+	background-color: aquamarine;
+	border-width:1px;
+	border-style:solid;
+	height:294px;
+	padding:12px;
+	margin-left:12px;
+	
+}
+
+.button{
+	width:72px;
+	height:72px;
+	display:block;
+	float:left;
+	margin-left:15.4%;
+}
+
+
+
+.videoContainer > div > a > img{
+	height:150px;
+	max-width:100%;
+	display:block;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.videoContainer > p{
+	font-size: 12px;
+	min-height: 36px;	
+}
+
+.videoContainer > div{
+	
+	
 }

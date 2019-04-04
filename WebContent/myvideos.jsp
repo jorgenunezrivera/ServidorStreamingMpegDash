@@ -30,7 +30,16 @@ if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 			String[] videos=modelo.obtenerVideosUsuario(userName);
 			for(String video : videos){
 			%>
-				<div><p><%= video %></p><a href="player.jsp?fileName=users/<%= userName %>/<%= video%>/stream.mpd">Reproducir</a>><a href="MPDServer/delete?fileName=<%= video%>&userName=<%=userName%>">Borrar</a></div>
+				<div class="videoContainer">
+					<p><%= video %></p>
+					<div>
+						<a href="player.jsp?fileName=users/<%= userName %>/<%= video%>/stream.mpd">
+						<img src="users/<%= userName %>/<%= video%>/pre.jpg"> </img></a></br>
+					</div>	
+					
+					<a href="player.jsp?fileName=users/<%= userName %>/<%= video%>/stream.mpd"><img class="button" src="play.png"/></a>
+					<a href="MPDServer/delete?fileName=<%= video%>&userName=<%=userName%>"><img class="button" src="delete.png"/></a>
+				</div>
 			<% } %>
 		</div>
 		<div id="waitDiv" style="display:none;">

@@ -8,16 +8,16 @@ import DashJorge.Modelo;
 class TimedClean {
 	Timer timer;
 	TimerTask task;
-	
-    public TimedClean() {
-	    
+	Modelo modelo;
+    public TimedClean(Modelo modelo) {
+    	this.modelo=modelo;
 	    timer = new Timer();
 	     task = new TimerTask() {
-	        
+	    
+	          
 	        @Override
 	        public void run()
 	        {
-	          Modelo modelo=Modelo.getInstance();
 	          int borrados=modelo.limpiarVideos();
 	          System.out.println("Cleaner ha borrado " + borrados + " videos");
 	        }
@@ -28,9 +28,11 @@ class TimedClean {
     
     public void run() {
     	task.run();
+    	
     }
     
     public void destroy() {
     	task.cancel();
+    	timer.cancel();
     }
 }

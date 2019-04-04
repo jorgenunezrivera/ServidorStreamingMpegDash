@@ -40,7 +40,7 @@ public class MPDServer extends HttpServlet {
      * Default constructor. 
      */
     public MPDServer() {
-        modelo=Modelo.getInstance();
+        modelo=Modelo.getInstance();        
        serverProperties=new Properties();
     	InputStream input = Modelo.class.getResourceAsStream("servidor.properties");
     	try {

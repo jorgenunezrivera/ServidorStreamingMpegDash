@@ -5,9 +5,9 @@
     <!-- Video -->
     <AdaptationSet maxHeight="720" maxWidth="406" mimeType="video/mp4" segmentAlignment="true" startWithSAP="1">
       <SegmentTemplate duration="1249" initialization="$RepresentationID$/init.mp4" media="$RepresentationID$/seg-$Number$.m4s" startNumber="1" timescale="1000"/>
-      <Representation bandwidth="1404332" codecs="avc1.64001E" frameRate="1350000/70267" height="720" id="video/avc1/1" scanType="progressive" width="406"/>
-      <Representation bandwidth="721087" codecs="avc1.640015" frameRate="1350000/70267" height="540" id="video/avc1/2" scanType="progressive" width="304"/>
-      <Representation bandwidth="358574" codecs="avc1.64000C" frameRate="1350000/70267" height="360" id="video/avc1/3" scanType="progressive" width="202"/>
+      <Representation bandwidth="1417467" codecs="avc1.64001E" frameRate="1350000/70267" height="720" id="video/avc1/1" scanType="progressive" width="406"/>
+      <Representation bandwidth="714952" codecs="avc1.640015" frameRate="1350000/70267" height="540" id="video/avc1/2" scanType="progressive" width="304"/>
+      <Representation bandwidth="361315" codecs="avc1.64000C" frameRate="1350000/70267" height="360" id="video/avc1/3" scanType="progressive" width="202"/>
     </AdaptationSet>
     <!-- Audio -->
     <AdaptationSet lang="en" mimeType="audio/mp4" segmentAlignment="true" startWithSAP="1">
