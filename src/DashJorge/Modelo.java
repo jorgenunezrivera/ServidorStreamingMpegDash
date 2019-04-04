@@ -52,6 +52,7 @@ public class Modelo {
 			envCtx = (Context) initCtx.lookup("java:comp/env");
 			DataSource ds = (DataSource)envCtx.lookup("jdbc/mariadb");
 			con=ds.getConnection();
+			
 		} catch (NamingException e1) {
 			System.err.println("Imposible conectar a mariadb: nombre de recurso incorrecto");
 			e1.printStackTrace();
@@ -164,6 +165,24 @@ public class Modelo {
 			return false;
 		}
 	}
+	
+	public void editarUsuario(String nombre, String pass) {
+		try {
+			PreparedStatement statement = con.prepareStatement("UPDATE user SET password = ? WHERE username = ?");
+			statement.setString(1, generateHash(pass));
+			statement.setString(2, nombre);
+			statement.execute();
+			int i= statement.getUpdateCount();
+			if(i==0) {
+				System.err.println("No se ha editado ningun usuario ");
+			}
+		} catch (SQLException e) {
+			System.err.println("Error al buscar al usuario en la tabla "+e.getMessage());
+			
+		}
+	}
+	
+	
 	//VIDEO
 	
 	public void registrarVideo(String nombreArchivo,String nombrePropietario) throws AlreadyHasThreeVideosException {

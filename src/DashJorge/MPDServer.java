@@ -88,7 +88,9 @@ public class MPDServer extends HttpServlet {
 			doRegister(request,response);
 		}else if(URI.equals("/ServidorMpegDashJorge/MPDServer/login")) {
 			doLogin(request,response);
-		}	
+		}else if(URI.equals("/ServidorMpegDashJorge/MPDServer/changepass")) {
+		doChangePass(request,response);
+		}
 	}
 
 	protected void doUpload(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -263,6 +265,18 @@ public class MPDServer extends HttpServlet {
 		}
 	}
 	
+	protected void doChangePass(HttpServletRequest request,HttpServletResponse response)throws IOException {
+		HttpSession session=request.getSession();  
+		String userName=(String)session.getAttribute("userName");
+		String oldPass=(String)request.getParameter("userPass");
+		String newPass=(String)request.getParameter("userNewPass");
+		if(modelo.autenticarUsuario(userName, oldPass)) {
+			modelo.editarUsuario(userName,newPass);
+			response.sendRedirect("/ServidorMpegDashJorge/upload.jsp");
+		}else{
+			response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=La contraseña no es correcta");
+		}
+	}
 	@Override
 	public void destroy() {
 		modelo.close();

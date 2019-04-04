@@ -7,6 +7,7 @@
     <title>Servidor Streaming MPEG DASH</title>
     <script src=validateUpload.js></script>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
     	body{
     		min-height:500px;
