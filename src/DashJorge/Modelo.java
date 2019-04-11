@@ -13,9 +13,7 @@ import Exceptions.AlreadyHasThreeVideosException;
 import Exceptions.NameAlreadyTakenException;
 import Exceptions.UserDoesntExistException;
 import Exceptions.VideoDoesntExistException;
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
@@ -23,7 +21,6 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -225,6 +222,8 @@ public class Modelo {
 			int updated = statement.getUpdateCount();
 			if(updated==0) {
 				//throw new cantregistervideoexception
+			}else {
+				
 			}
 		}catch (SQLException e) {
 			System.err.println(e.getMessage());
@@ -332,7 +331,9 @@ public class Modelo {
 				}
 			}
 		}catch (SQLException e) {
-			System.err.println(e.getMessage());
+			e.printStackTrace();
+			System.err.println("error al limpiar :" + e.getMessage());
+			return -1; //LAnzar excepcion
 		}		
 		return borrados;
 	}

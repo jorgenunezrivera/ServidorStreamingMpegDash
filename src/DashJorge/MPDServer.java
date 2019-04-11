@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -21,6 +22,7 @@ import javax.servlet.http.Part;
 
 import Exceptions.AlreadyHasThreeVideosException;
 import Exceptions.NameAlreadyTakenException;
+import ffmpeg_jni.VideoThumbnail;
 
 /**
  * Servlet implementation class MPDServer
@@ -131,6 +133,13 @@ public class MPDServer extends HttpServlet {
 		}
 		 
 		//PROCESAR EL VIDEO			
+		//THUMBNAIL (FFMPEG_JNI)
+		
+		int resp = VideoThumbnail.extractVideoThumbnail(fileWrite);
+		if(resp<0) {
+			System.err.println("No se ha podido exctraer el thumbnail");
+		}
+		
 		ProcessBuilder pb = new ProcessBuilder("./ComprimirDash3Calidades.sh" ,fileWrite);
 		pb.directory(new File(serverProperties.getProperty("scriptpath")));
 		//Map<String, String> env = pb.environment();

@@ -5,7 +5,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>JS Dash Player</title>
-	<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+	<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script> <!-- dash.all.min.js -->
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<style>
 	    video {
