@@ -1,7 +1,7 @@
 /**
  * Function to validate upload file
  */
-
+//Comprobar si el usuario "SOY YO" dejarme subir videos grandes que quiero ver la peli de batman desde la cama
 var valid = false;
 
 		function validateFileUpload()
@@ -18,9 +18,9 @@ var valid = false;
 		    }
 		    else {
 		        file = input_element.files[0];
-		        if(file.size>4000000)
+		        if(file.size>10*1024*1024)
 		        	{
-		        		el.innerHTML="El tamaño máximo son 4MB";
+		        		el.innerHTML="El tamaño máximo son 10MB";
 			          	return false;
 		        	}
 		    }
@@ -33,7 +33,7 @@ var valid = false;
 		            return true;
 		        }
 		    }
-		    el.innerHTML="El archivo debe tener como extension .avi , .mp4, .flv";
+		    el.innerHTML="El archivo debe tener como extension .avi , .mp4, .flv  .3gp  ...";
 		    return false;
 		    
 		}

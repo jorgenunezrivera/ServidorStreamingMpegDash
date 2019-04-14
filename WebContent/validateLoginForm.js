@@ -4,7 +4,7 @@
 
 var valid = false;
 
-		function validateRegisterForm()
+		function validateLoginForm()
 		{	
 			var name=document.getElementById("userName").value;
 			var pass = document.getElementById("userPass").value;

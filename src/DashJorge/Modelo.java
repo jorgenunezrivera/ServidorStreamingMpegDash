@@ -10,6 +10,10 @@ import javax.sql.DataSource;
 import com.sun.mail.smtp.SMTPTransport;
 
 import Exceptions.AlreadyHasThreeVideosException;
+import Exceptions.CannotDeleteVideoException;
+import Exceptions.CantCreateUserDirException;
+import Exceptions.CantCreateUserException;
+import Exceptions.CantRegisterVideoException;
 import Exceptions.NameAlreadyTakenException;
 import Exceptions.UserDoesntExistException;
 import Exceptions.VideoDoesntExistException;
@@ -44,12 +48,12 @@ public class Modelo {
 	private Modelo() {
 		Context initCtx; 
 		Context envCtx;
+		//CONECTAR A MARIADB
 		try {
 			initCtx = new InitialContext();
 			envCtx = (Context) initCtx.lookup("java:comp/env");
 			DataSource ds = (DataSource)envCtx.lookup("jdbc/mariadb");
 			con=ds.getConnection();
-			
 		} catch (NamingException e1) {
 			System.err.println("Imposible conectar a mariadb: nombre de recurso incorrecto");
 			e1.printStackTrace();
@@ -62,8 +66,7 @@ public class Modelo {
 		try {
 			serverProperties.load(input);
 		} catch (IOException e) {
-			System.err.println("Se ha producido un error leyendo el fichero de configuracion (del servidor mysql)");
-			
+			System.err.println("Se ha producido un error leyendo el fichero de configuracion ");
 		}
 		clean = new TimedClean(this);
 	}
@@ -74,11 +77,12 @@ public class Modelo {
 			}
 			return modelo_instance;
 	}
-	
-	//USUARIO
-	
-	public void nuevoUsuario(String nombre,String pass,String mailAddr) throws NameAlreadyTakenException{
-		try{
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////// USUARIO /////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//NUEVO USUARIO
+	public void nuevoUsuario(String nombre,String pass,String mailAddr) throws NameAlreadyTakenException, CantCreateUserDirException, CantCreateUserException{
+		try{ //COMPRUEBA SI YA EXISTE UNO CON EL MISMO NOMBRE
 			PreparedStatement checkStatement = con.prepareStatement("SELECT username FROM user WHERE username = ?");
 			checkStatement.setString(1, nombre);
 			checkStatement.execute();
@@ -88,7 +92,7 @@ public class Modelo {
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
 		}
-		try {
+		try {//SI NO, LO INSERTA
 			PreparedStatement statement = con.prepareStatement("INSERT INTO user VALUES (?,?,?,FALSE)");
 			statement.setString(1, nombre);
 			statement.setString(2, generateHash(pass));
@@ -96,30 +100,30 @@ public class Modelo {
 			statement.execute();
 			File dir = new File(serverProperties.getProperty("usersdir")+nombre); 
 			boolean dirCreated= dir.mkdirs();
+			if(!dirCreated) {
+				throw new CantCreateUserDirException(dir.getName());
+			}
 			int updated=statement.getUpdateCount();
+			if(updated!=1){
+				throw new CantCreateUserException(nombre);
+				}
 			//ENVIAR EMAIL DE CONFIRMACION Y GENERAR TOKEN
-			//Controlar que sean correctos
-			//CONTROLAR QUE LA TRANSACION SEA COMPLETA Y SI NO DESHACERLO TODO
 			sendConfirmationMail(nombre,mailAddr);
 		}catch (SQLException e) {
 			System.err.println(e.getMessage());
-		}
-			/*if(updated==0) {
-				throw new SQLException();
-			}*/		
+		}					
 	}
 	
+	//BORRAR USUARIO
 	public void borrarUsuario(String nombre) throws UserDoesntExistException {
 		try{
 			PreparedStatement statement = con.prepareStatement("DELETE FROM user WHERE username = ?");
 			statement.setString(1, nombre);
 			statement.execute();
-			
 			int updated=statement.getUpdateCount();
 			if(updated>0) {
 				File dir = new File(serverProperties.getProperty("usersdir")+nombre);
 				recursiveDelete(dir);
-				
 			}else {
 				throw new UserDoesntExistException(nombre);
 			}
@@ -127,10 +131,8 @@ public class Modelo {
 			System.err.println(e.getMessage());
 		}		
 	}
-		public void editarPerfil() {	//Por ahora solo seria cambiar de contraseña, y borrar perfil.
-		
-	}
 	
+	//VERIFICAR MAIL
 	protected boolean verificarEmail(String nombre,String token) {
 		if (checkHash(nombre,token)) {
 			try {
@@ -140,12 +142,13 @@ public class Modelo {
 				return true;
 			}catch (SQLException e) {
 				System.err.println(e.getMessage());
-				return false;	//DEBERIA LANZAR UNA EXCEPCION
+				return false;	
 			}
 		}
 		return false;	
 	}
 	
+	//AUTENTICAR USUARIO
 	public boolean autenticarUsuario(String nombre, String pass) {
 		try {
 			PreparedStatement statement = con.prepareStatement("SELECT password FROM user WHERE username = ?");
@@ -163,7 +166,8 @@ public class Modelo {
 		}
 	}
 	
-	public void editarUsuario(String nombre, String pass) {
+	//EDITAR USUARIO (CAMBIAR CONTRASEÑA)
+	public void editarUsuario(String nombre, String pass) throws UserDoesntExistException {
 		try {
 			PreparedStatement statement = con.prepareStatement("UPDATE user SET password = ? WHERE username = ?");
 			statement.setString(1, generateHash(pass));
@@ -171,7 +175,7 @@ public class Modelo {
 			statement.execute();
 			int i= statement.getUpdateCount();
 			if(i==0) {
-				System.err.println("No se ha editado ningun usuario ");
+				throw new UserDoesntExistException(nombre);
 			}
 		} catch (SQLException e) {
 			System.err.println("Error al buscar al usuario en la tabla "+e.getMessage());
@@ -179,12 +183,13 @@ public class Modelo {
 		}
 	}
 	
-	
-	//VIDEO
-	
-	public void registrarVideo(String nombreArchivo,String nombrePropietario) throws AlreadyHasThreeVideosException {
+	/////////////////////////////////////////////////////////////////////77//////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////VIDEO///////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//Registrar video (Throws alreadyhasthreevideos,cannotregistervideo
+	public void registrarVideo(String nombreArchivo,String nombrePropietario) throws AlreadyHasThreeVideosException, CantRegisterVideoException {
 		try {
-			//LImpiar y comprobar si hay 3
+			//LImpiar y comprobar si ya hay 3 videos
 			clean.run();
 			PreparedStatement countStatement = con.prepareStatement("SELECT COUNT(*) AS videocount FROM video WHERE owner = ?");
 			countStatement.setString(1, nombrePropietario);
@@ -203,7 +208,7 @@ public class Modelo {
 				statement.execute();
 				int updated = statement.getUpdateCount();
 				if(updated==0) {
-					//	throw new cantregistervideoexception
+					throw new CantRegisterVideoException(nombreArchivo);
 				}
 			}else {
 				throw new AlreadyHasThreeVideosException(nombrePropietario);
@@ -213,7 +218,8 @@ public class Modelo {
 		}		
 	}
 	
-	public void registrarVideoCargado(String nombreArchivo,String nombrePropietario) {
+	//REISTRAR VIDEO CARGADO (Anota en la BD que el video está cargado y convertido) (comprobar que haga todas las pruebas) (THROWS CANTREGISTERVIDEO 
+	public void registrarVideoCargado(String nombreArchivo,String nombrePropietario) throws CantRegisterVideoException {
 		try {
 			PreparedStatement statement = con.prepareStatement("UPDATE video SET uploaded=TRUE WHERE filename= ? AND owner = ?;");
 			statement.setString(1, nombreArchivo);
@@ -221,7 +227,7 @@ public class Modelo {
 			statement.execute();
 			int updated = statement.getUpdateCount();
 			if(updated==0) {
-				//throw new cantregistervideoexception
+				throw new CantRegisterVideoException(nombreArchivo);
 			}else {
 				
 			}
@@ -230,7 +236,8 @@ public class Modelo {
 		}		
 	}
 	
-	public void borrarVideo(String nombreArchivo,String nombrePropietario) {
+	//BORRAR VIDEO throws cannotdeletevideoexception
+	public void borrarVideo(String nombreArchivo,String nombrePropietario) throws CannotDeleteVideoException {
 		boolean fileUploaded=false;
 		System.err.println("archivo: "+ nombreArchivo + "propietario:  " + nombrePropietario);
 		try {
@@ -249,7 +256,7 @@ public class Modelo {
 			int updated = statement.getUpdateCount();
 			if(updated==0) {
 				System.err.println("archivo: "+ nombreArchivo + "propietario:  " + nombrePropietario+ "video no borrado");
-				//throw new cantdeletevideoexception
+				throw new CannotDeleteVideoException(nombreArchivo);
 			}
 			if(fileUploaded) {
 				File file = new File(serverProperties.getProperty("usersdir")+nombrePropietario+File.separator +nombreArchivo);//Usar separador universal?
@@ -260,6 +267,8 @@ public class Modelo {
 		}		
 	}
 
+	
+	//OBTENER VIDEO 
 	public String obtenerVideo(String nombreArchivo,String nombrePropietario) throws VideoDoesntExistException {
 		try {
 			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE filename = ? AND owner = ?");
@@ -282,6 +291,7 @@ public class Modelo {
 		return "";
 	}
 	
+	//OBTENER VIDEOS USUARIO
 	public String[] obtenerVideosUsuario(String nombrePropietario) {
 		String[] videos=null;
 		try {
@@ -310,9 +320,9 @@ public class Modelo {
 		return videos;
 	}
 	
-
+	//LIMPIAR VIDEOS
 	public int limpiarVideos() {	//Llamado por la clase "Reloj" para limpiar , devuelve el numero de videos borrados 
-		int borrados=0;
+		int borrados=0;				//Borra los videos que han pasado su fecha de caducidad. Tmbien podría bsucar archivos sin entrada en la BD y viceversa
 		try {
 			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE deletetime < NOW();");
 			statement.execute();
@@ -333,7 +343,7 @@ public class Modelo {
 		}catch (SQLException e) {
 			e.printStackTrace();
 			System.err.println("error al limpiar :" + e.getMessage());
-			return -1; //LAnzar excepcion
+			return -1;
 		}		
 		return borrados;
 	}
@@ -341,18 +351,19 @@ public class Modelo {
 	
 	
 	//FUNCIONES AUXILIARES  O DE APOYO
+	
+	//SEND CONFIRMATION MAIL (GENERA UN TOKEN Y LO ENVIA POR CORREO 
 	protected void sendConfirmationMail(String nombre, String mailAddr) {
-		  String from = "jorge.nunez.rivera@udc.es";
-	      String host = "smtp.office365.com";
-	      String password ="DaisAsko2018";
+		  String from = serverProperties.getProperty("mailFrom");//"jorge.nunez.rivera@udc.es";
+	      String host = serverProperties.getProperty("mailHost");//"smtp.office365.com";
+	      String password =serverProperties.getProperty("mailPass");//"DaisAsko2018";
 	      String token=generateHash(nombre);
+	      String serverHost= serverProperties.getProperty("serverHost");//"http://243.37.76.188.dynamic.jazztel.es:34825";
 	      Properties properties = System.getProperties();
 	      properties.setProperty("mail.smtp.host", host);
 	      properties.setProperty("mail.smtp.auth", "true");
 	      properties.put("mail.smtp.starttls.enable","true");
 	      properties.setProperty("mail.smtp.port","587");
-	      //PUERTO 587
-	      //TLS
 	      Session session=Session.getDefaultInstance(properties);
 	      session.setDebug(true);
 	      session.setDebugOut(System.err);
@@ -361,9 +372,7 @@ public class Modelo {
 	          message.setFrom(new InternetAddress(from));
 	          message.addRecipient(Message.RecipientType.TO, new InternetAddress(mailAddr));
 	          message.setSubject("Correo de confirmación");
-	          message.setContent("<h1>Confirma tu usuario en ServidorMpegDASH</h1><p>Haz click en el enlace para confirmar tu correo</p><a href='http://126.37.76.188.dynamic.jazztel.es:9524/ServidorMpegDashJorge/MPDServer/confirmMail?userName="+nombre+"&token="+token+"'>Confirmar correo </a>", "text/html" );
-	         //TODO: HOST NAME MUST BE READ FROM PROPERTIES FILE
-	          // Send message
+	          message.setContent("<h1>Confirma tu usuario en ServidorMpegDASH</h1><p>Haz click en el enlace para confirmar tu correo</p><a href='"+serverHost+"/ServidorMpegDashJorge/MPDServer/confirmMail?userName="+nombre+"&token="+token+"'>Confirmar correo </a>", "text/html" );
 	         SMTPTransport t=(SMTPTransport)session.getTransport("smtp");
 	         try {
 	        	 t.connect(host,from, password);
@@ -387,7 +396,7 @@ public class Modelo {
 	}
 	
 	
-	
+	//GENERATE HASH (genera un hash a artir de un password y un salt generado aleatoriamente
 	private String generateHash(String pass) {
 		SecureRandom random = new SecureRandom();
 		byte[] salt = new byte[16];
@@ -408,12 +417,12 @@ public class Modelo {
 		return saltString + hashString;
 	}
 	
+	//CHECK HASH (comprueba si un hash se corresponde con un pass
 	private boolean checkHash(String pass,String hashString) {
 		byte[] salt = new byte[16];
 		byte[] realHash = new byte[16];
 		byte[] newHash=new byte[16];
 		byte[] salthash=new byte[32];
-		//char[] salthash=hashString.toCharArray();
 		try {
 			salthash=Hex.decodeHex(hashString);
 		} catch (DecoderException e1) {
@@ -426,7 +435,6 @@ public class Modelo {
 			realHash[i-16]=salthash[i];
 		}
 		String saltString=Hex.encodeHexString(salt);
-		String realHashString=Hex.encodeHexString(realHash);
 		KeySpec spec = new PBEKeySpec(pass.toCharArray(), salt, 65536, 128);
 		try {
 			SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
@@ -442,7 +450,7 @@ public class Modelo {
 		return hashString.equals(newSaltHashString);
 	}	
 	
-
+	//Recursive delete borra un directorio y TOdO su contenido recursivamente. CUIDADO!!
 	private boolean recursiveDelete(File file) {
 		if(file.isDirectory()){
 			for (File son: file.listFiles()) {
@@ -458,6 +466,8 @@ public class Modelo {
 		return false;
 	}		
 	
+	
+	//CLOSE cierra l conexion con mariadb y cierra l limpiador tambien
 	public void close() {
 		clean.destroy();
 		try {
