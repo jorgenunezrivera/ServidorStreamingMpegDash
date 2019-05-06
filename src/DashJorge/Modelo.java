@@ -151,13 +151,15 @@ public class Modelo {
 	//AUTENTICAR USUARIO
 	public boolean autenticarUsuario(String nombre, String pass) {
 		try {
-			PreparedStatement statement = con.prepareStatement("SELECT password FROM user WHERE username = ?");
+			PreparedStatement statement = con.prepareStatement("SELECT password,verifieduser FROM user WHERE username = ?");
 			statement.setString(1, nombre);
 			statement.execute();
 			ResultSet resultado = statement.getResultSet();
 			if(resultado.next()) {
-				String hashRealPass=resultado.getString(1);
-				return checkHash(pass,hashRealPass);
+				if(resultado.getBoolean(2)) { 
+					String hashRealPass=resultado.getString(1);
+					return checkHash(pass,hashRealPass);
+				}
 			}
 			return false;
 		} catch (SQLException e) {

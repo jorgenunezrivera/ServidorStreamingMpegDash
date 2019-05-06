@@ -23,7 +23,7 @@ import Exceptions.CantRegisterVideoException;
 import Exceptions.NameAlreadyTakenException;
 import Exceptions.UserDoesntExistException;
 import ffmpeg_jni.VideoDash;
-import ffmpeg_jni.VideoThumbnail;
+
 
 /**
  * Servlet implementation class MPDServer
@@ -85,9 +85,6 @@ public class MPDServer extends HttpServlet {
 		System.out.println(URI);
 		if(URI.equals("/ServidorMpegDashJorge/MPDServer/upload")) {
 			doUpload(request,response);
-		}
-		else if(URI.equals("/ServidorMpegDashJorge/MPDServer/waitupload")) {
-			doWaitUpload(request,response);
 		}else if(URI.equals("/ServidorMpegDashJorge/MPDServer/register")) {
 			doRegister(request,response);
 		}else if(URI.equals("/ServidorMpegDashJorge/MPDServer/login")) {
@@ -102,7 +99,6 @@ public class MPDServer extends HttpServlet {
 		}
 	}
 
-	//CAMBIAR PARA QUE NO USE EL SCRIPT SINO LAS FUNCIONES INTEGRADAS
 	/**
 	 * 
 	 * @param request
@@ -124,7 +120,7 @@ public class MPDServer extends HttpServlet {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			return;
 		}
-		fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString(); // MSIE fix. ???
+		fileName =filePart.getSubmittedFileName().toLowerCase();// Paths.get(filePart.getSubmittedFileName()).getFileName().toString(); // MSIE fix. ???
 		String fileWrite = serverProperties.getProperty("usersdir")+ username+File.separator + fileName;
 		//ESCRIBIR EL ARCHIVO
 		try {
@@ -148,9 +144,11 @@ public class MPDServer extends HttpServlet {
 			response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=Error: No se ha podido regsitrar el video en la base de datos");
 			return;
 		}
-		 //PROCESAR EL VIDEO			
-		//THUMBNAIL (FFMPEG_JNI)
-		int resp=VideoDash.videoDash(fileWrite); //THREAD A PARTE???????????????????????????
+		 //PROCESAR EL VIDEO	
+		lastDot = fileWrite.lastIndexOf(".");
+		String dirCompleteName=fileWrite.substring(0,lastDot);
+		dirCompleteName += "-DASH/";
+		int resp=VideoDash.videoDash(fileWrite,dirCompleteName); //THREAD A PARTE???????????????????????????
 		if(resp<0) {
 			response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=No se ha podido convertir el video");
 			return;
@@ -165,70 +163,16 @@ public class MPDServer extends HttpServlet {
             System.out.println("Failed to delete the mp4 file"); 
         } 
 		
-		//ESCRIBIR LA RESPUESTA
-		//response.setStatus(HttpServletResponse.SC_OK);//PORQUE?
-		response.setContentType("text/html");
-		request.setAttribute("fileName", fileName);
-		request.setAttribute("fileConverted", resp);
-		
-		try {
-			getServletContext().getRequestDispatcher("/MPDServer/waitupload").forward(
-			        request, response);
-		} catch (ServletException e) {
-			//os.println("Error de servlet al redirigir");
-			e.printStackTrace();
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			return;
+        //PROCESAR EL RESULTADO
+        try {
+			modelo.registrarVideoCargado(dirName, username);
+		} catch (CantRegisterVideoException e) {
+			response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=Error: no se ha podido marcar el video como subido a la BD");		
 		}
+		response.sendRedirect("/ServidorMpegDashJorge/FileUploaded.jsp?originalFileName="+fileName+"&streamFileName="+username+File.separator+dirName+"stream.mpd");
 	}
 	
-	protected void doWaitUpload(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-		String fileName;
-		HttpSession session=request.getSession();  
-		String username=(String)session.getAttribute("userName");
-		try {
-			fileName = (String)request.getAttribute("fileName");
-			int lastDot = fileName.lastIndexOf(".");
-			String dirName=fileName.substring(0,lastDot);
-			dirName += "-DASH/";
-			
-			response.setStatus(HttpServletResponse.SC_OK);//PORQUE?
-			response.setContentType("text/html");			
-			//int result=p.waitFor();//THREAD QUE HAGA LA LLAMADA A C??
-			switch((int)request.getAttribute("fileConverted")){
-			case 0:
-				try {
-					modelo.registrarVideoCargado(dirName, username);
-				} catch (CantRegisterVideoException e) {
-					response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=Error: no se ha podido marcar el video como subido a la BD");
-					break;
-				}
-				response.sendRedirect("/ServidorMpegDashJorge/FileUploaded.jsp?originalFileName="+fileName+"&streamFileName="+username+File.separator+dirName+"stream.mpd");
-				break;
-			case 2:
-				try {
-					modelo.borrarVideo(dirName, username);
-				} catch (CannotDeleteVideoException e) {
-					break;
-				}
-				response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=Ya existe un video con ese nombre, cambie el nombre de su video por favor");
-				break;
-			default:
-				try {
-					modelo.borrarVideo(dirName, username);
-				} catch (CannotDeleteVideoException e) {
-					break;
-				}
-				response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=Se ha proucido un error al convertir el archivo, comprueba que sea un fichero de video de formato adecuado");					
-			}
-		} catch (IOException e) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-		} 
-		finally {
-			
-		}
-	}
-	
+	//REGISTRAR USUARIO
 	protected void doRegister(HttpServletRequest request,HttpServletResponse response)throws IOException, ServletException {
 		String userName =(String)request.getParameter("userName");
 		String userPass =(String)request.getParameter("userPass");
@@ -247,6 +191,8 @@ public class MPDServer extends HttpServlet {
 		
 	}
 	
+	//INICIAR SESION
+	//No comprueba que el usuario haya confirmado el mail
 	protected void doLogin(HttpServletRequest request,HttpServletResponse response)throws IOException, ServletException {
 		String userName =(String)request.getParameter("userName");
 		String userPass =(String)request.getParameter("userPass");
@@ -259,6 +205,7 @@ public class MPDServer extends HttpServlet {
 		}
 	}
 	
+	//CONFIRMAR CORREO
 	protected void doConfirmEmail(HttpServletRequest request,HttpServletResponse response)throws IOException, ServletException {
 		String userName =(String)request.getParameter("userName");
 		String token =(String)request.getParameter("token");
@@ -271,7 +218,7 @@ public class MPDServer extends HttpServlet {
 			response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=No se ha podido iniciar sesión, el nombre de usuario o contraseña son incorrectos");
 		}
 	}
-	
+	//BORRAR VIDEO
 	protected void doDelete(HttpServletRequest request,HttpServletResponse response) throws IOException {
 		HttpSession session=request.getSession();  
 		String userName=(String)session.getAttribute("userName");
@@ -286,7 +233,7 @@ public class MPDServer extends HttpServlet {
 			response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=No puedes borrar un video de otro  usuario pillín!!!!!");
 		}
 	}
-	
+	//CAMBIAR CONTRASEÑA
 	protected void doChangePass(HttpServletRequest request,HttpServletResponse response)throws IOException {
 		HttpSession session=request.getSession();  
 		String userName=(String)session.getAttribute("userName");

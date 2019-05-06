@@ -1,0 +1,75 @@
+ffmpeg  -i /home/brad/Descargas/MortalKombatTrailer.mp4 -map 0:v -map 0:v -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23 -s:v:1 852x480 -s:v:2 426x240 -profile:v:2 high -profile:v:1 high -profile:v:0 high -bf 16 -keyint_min 120 -g 240 -sc_threshold 40 -b_strategy 1  -use_timeline 1 -use_template 1 -window_size 5 -adaptation_sets  "id=0,streams=v id=1,streams=a" -seg_duration 5 -vsync cfr -ac 2 -r 24 -level:v:2 30 -maxrate:v:0 622k -maxrate:v:1 622k -maxrate:v:2 622k -bufsize 1240k -f dash  /home/brad/Descargas/MortalKombatTrailer/stream.mpd
+
+
+
+ffmpeg  -i /home/brad/Descargas/MortalKombatTrailer.mp4 -map 0:v -map 0:v -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23 -s:v:1 852x480 -s:v:2 426x240 -profile:v:2 high -profile:v:1 high -profile:v:0 high -bf 16 -keyint_min 120 -g 240 -sc_threshold 40 -b_strategy 1  -force_key_frames "expr:eq(mod(n,120),0)" -vsync cfr -ac 2 -r 24 -level:v:2 30 -maxrate:v:0 622k -maxrate:v:1 622k -maxrate:v:2 622k -bufsize 1240k -f mp4  /home/brad/Descargas/MortalKombatTrailer/MKT.mp4
+
+ffprobe /home/brad/Descargas/MortalKombatTrailer/MKT.mp4 -select_streams v -show_frames -of csv -show_entries frame=coded_picture_number,key_frame,pict_type > frames.csv
+
+ffmpeg -i /home/brad/Descargas/MortalKombatTrailer/MKT.mp4 -use_timeline 1 -use_template 1 -window_size 5 -adaptation_sets  "id=0,streams=v id=1,streams=a" -seg_duration 5 -f dash /home/brad/Descargas/MortalKombatTrailer/stream.mpd
+
+-r 24 (out framerate)
+crf 23 (constantt rate factor)
+(622kbpps)
+
+falta bufsize, maxrate, crf????
+Esta codificando con Average CBR ??
+crf???
+
+ffmpeg  -i /home/brad/Descargas/TheRainTrailer.mp4 -map 0:v -map 0:v -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23 -s:v:1 852x480 -s:v:2 426x240 -profile:v:2 high -profile:v:1 high -profile:v:0 high -bf 16 -keyint_min 125 -g 250 -sc_threshold 40 -b_strategy 1  -force_key_frames "expr:eq(mod(n,125),0)" -vsync cfr -ac 2 -r 25 -level:v:2 30 -maxrate:v:0 900k -maxrate:v:1 450k -maxrate:v:2 200k -bufsize:v:0 1800k -bufsize:v:1 900k -bufsize:v:2 400k -f mp4  /home/brad/Descargas/TheRainTrailer/TRT.mp4
+
+///////EN 3 Archivos ///////////////
+
+ffmpeg  -i /home/brad/Descargas/MortalKombatTrailer.mp4 -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23  -profile:v:0 high -preset:v:0 slow -bf 16 -keyint_min 120 -g 240 -sc_threshold 40 -b_strategy 1  -force_key_frames "expr:eq(mod(n,120),0)" -vsync cfr -ac 2 -r 24 -maxrate:v:0 2000k  -bufsize 4000k -f mp4  /home/brad/Descargas/MortalKombatTrailer/MKThigh.mp4
+
+ffmpeg  -i /home/brad/Descargas/MortalKombatTrailer.mp4 -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23 -s:v:0 852x480 -profile:v:0 high -preset:v:0 slow -bf 16 -keyint_min 120 -g 240 -sc_threshold 40 -b_strategy 1  -force_key_frames "expr:eq(mod(n,120),0)" -vsync cfr -ac 2 -r 24 -maxrate:v:0 1200k  -bufsize 2400k -f mp4  /home/brad/Descargas/MortalKombatTrailer/MKTmid.mp4
+
+ffmpeg  -i /home/brad/Descargas/MortalKombatTrailer.mp4 -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23  -s:v:0 426x240 -profile:v:0 high -preset:v:0 slow -bf 16 -keyint_min 120 -g 240 -sc_threshold 40 -b_strategy 1  -force_key_frames "expr:eq(mod(n,120),0)" -vsync cfr -ac 2 -r 24 -maxrate:v:0 400k  -bufsize 800k -f mp4  /home/brad/Descargas/MortalKombatTrailer/MKTlow.mp4
+
+
+
+ffprobe /home/brad/Descargas/MortalKombatTrailer/MKThigh.mp4 -select_streams v -show_frames -of csv -show_entries frame=coded_picture_number,key_frame,pict_type > frames.csv
+ffprobe /home/brad/Descargas/MortalKombatTrailer/MKTmid.mp4 -select_streams v -show_frames -of csv -show_entries frame=coded_picture_number,key_frame,pict_type > frames.csv
+ffprobe /home/brad/Descargas/MortalKombatTrailer/MKTlow.mp4 -select_streams v -show_frames -of csv -show_entries frame=coded_picture_number,key_frame,pict_type > frames.csv
+
+/home/brad/ServidorStreamingMpegDash/ffmpeg_jni/jni/VideoDash /home/brad/Descargas/MortalKombatTrailer.mp4 
+
+
+///DASH
+
+ffmpeg  -i /home/brad/Descargas/MortalKombatTrailer.mp4 -map 0:v -map 0:v -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23  -s:v:0 426x240 -s:v:1 852x480 -profile:v high -preset:v slow -bf 16 -keyint_min 125 -g 250 -sc_threshold 40 -b_strategy 1  -force_key_frames "expr:eq(mod(n,125),0)" -vsync cfr -ac 2 -r 25 -maxrate:v:0 400k  -bufsize:v:0 800k -maxrate:v:1 1200k -bufsize:v:1 2400k -maxrate:v:2 2000k -bufsize:v:2 4000k -f dash  -window_size 5 -adaptation_sets  "id=0,streams=v id=1,streams=a" -use_timeline 1 -use_template 1 -seg_duration 5 -f dash /home/brad/ServidorMpegDash
+//NO FUNCIONA!!
+ffmpeg  -i /home/brad/Descargas/MortalKombatTrailer.mp4 -map 0:v -map 0:v -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23  -s:v:0 426x240 -s:v:1 852x480 -profile:v high -preset:v slow -bf 16 -keyint_min 125 -g 250 -sc_threshold 40 -b_strategy 1  -force_key_frames "expr:eq(mod(n,120),0)" -vsync cfr -ac 2 -r 25 -maxrate:v:0 400k  -bufsize:v:0 800k -maxrate:v:1 1200k -bufsize:v:1 2400k -maxrate:v:2 2000k -bufsize:v:2 4000k -f dash  -window_size 5 -adaptation_sets  "id=0,streams=v id=1,streams=a" -use_timeline 1 -use_template 1 -seg_duration 5 -f dash /home/brad/ServidorStreamingMpegDash/ServidorStreamingMpegDash/WebContent/users/MortalKombatTrailer-DASH-FFMPEG/stream.mpd
+
+ffmpeg  -i /home/brad/Descargas/TheRainTrailer.mp4 -map 0:v -map 0:v -map 0:v -map 0:a -c:a aac -c:v libx264 -crf 23  -s:v:0 426x240 -s:v:1 852x480 -profile:v high -preset:v slow -bf 16 -keyint_min 125 -g 250 -sc_threshold 40 -b_strategy 1  -force_key_frames "expr:eq(mod(n,120),0)" -vsync cfr -ac 2 -r 25 -maxrate:v:0 400k  -bufsize:v:0 800k -maxrate:v:1 1200k -bufsize:v:1 2400k -maxrate:v:2 2000k -bufsize:v:2 4000k -f dash  -window_size 5 -adaptation_sets  "id=0,streams=v id=1,streams=a" -use_timeline 1 -use_template 1 -seg_duration 5 -f dash /home/brad/ServidorStreamingMpegDash/ServidorStreamingMpegDash/WebContent/users/TheRainTrailer-DASH-FFMPEG/stream.mpd
+
+
+ffprobe /home/brad/Descargas/anunciolidl25/stream.mpd -select_streams v -show_frames -of csv -show_entries frame=pts,coded_picture_number,key_frame,pict_type > frames.csv
+
+IMPORTANTES:
+
+CRF!!!!!!!
+KEYINT_MIN,GOP
+B_STRATEGY???
+PROFILE HIGH!!
+FORCE KEY FRAMES (MAUAL?)
+VSYNC 1/CRF
+RATE (FPS)
+maxrate
+bufsize
++?
+
+La calidad no parece que sea un problema por ahora
+o si
+vlc que pasa mamon
+
+
+
+velocidad???????????????????????????
+cada vez mas lento (maxrate....)
+o bien usar el crf con cautela?
+o hacerlo bien siguiendo la guia?
+
+0.5 (peero mi ordenador es una castaña)
+
+

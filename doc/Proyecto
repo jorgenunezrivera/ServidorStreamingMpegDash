@@ -1,0 +1,443 @@
+Bitmovin - tiene librerias y documentación
+        los servicios son de pago
+        la libreria de codificacion?¿no     java
+hay otras 2
+
+ITEC dash Encoder   c
+DASHCAST (GPAC) ¿LIBRERIA O PROGRAMA?
+BENTO 4     python
+
+Bitmovin en java
+
+Por tanto
+Bitmovin : Parece muy bien documentado, esta en JAVA
+ITEC dash encoder:                      escrito en  C
+BENTO 4                                 (C++/java/python)
+
+Estado del arte
+
+Paso 1 : Seleccion de librerias
+
+En resumen bitmovin han hecho el sdk opensource mas popular pero para vendertelo como servicio en la nube?
+Por otra parte se ve que lo interesante del servicio es ofrecerlo como servicio en la nube. Copiar un poco lo que hace bitmovin ? y luego buscarle 3 pies?
+por otra parte, ITEC ofrece ademas del encoder standar uno especial para moviles. (Streamear a traves del movil en DASH ??)
+
+
+Por tanto decido empezar probando Bento4 y si no me da problemas ya quedarme con él.
+
+Paso 2 : Prueba de librerias
+
+Compilarlos distintos sdks
+, empezando por bento4, e intentar streamear un video
+
+Una vez instalado el SDK Bento4, procedo a probar a descargar un video y codificarlo 
+en 3 bitrates diferentes.
+Es vital que los IFrames sean los mismos.
+Este proceso debe ser automatizado
+The cleanest way to force I-frame positions using FFmpeg is to use the  –x264opts ‘keyint=24:min-keyint=24:no-scenecut’  argument.
+
+ejemplo:
+ffmpeg -y -i ~/Descargas/SampleVideo_1280x720_1mb.mp4 -c:a aac -ac 2 -ab 128k -c:v libx264 -x264opts 'keyint=24:min-keyint=24:no-scenecut' -b:v 1500k -maxrate 1500k -bufsize 1000k -vf "scale=-1:720" ~/Descargas/SampleVideo1500.mp4
+
+ffmpeg -y -i ~/Descargas/SampleVideo_1280x720_1mb.mp4 -c:a aac -ac 2 -ab 128k -c:v libx264 -x264opts 'keyint=24:min-keyint=24:no-scenecut' -b:v 800k -maxrate 800k -bufsize 500k -vf "scale=-1:540" ~/Descargas/SampleVideo800.mp4
+
+ffmpeg -y -i ~/Descargas/SampleVideo_1280x720_1mb.mp4 -c:a aac -ac 2 -ab 128k -c:v libx264 -x264opts 'keyint=24:min-keyint=24:no-scenecut' -b:v 400k -maxrate 400k -bufsize 400k -vf "scale=-1:360" ~/Descargas/SampleVideo400.mp4
+
+
+	
+
+~/Documentos/BENTO4-MAKE/mp4fragment ~/Descargas/SampleVideo1500.mp4 ~/Descargas/SampleVideoFrag1500.mp4
+
+~/Documentos/BENTO4-MAKE/mp4fragment ~/Descargas/SampleVideo800.mp4 ~/Descargas/SampleVideoFrag800.mp4
+
+~/Documentos/BENTO4-MAKE/mp4fragment ~/Descargas/SampleVideo400.mp4 ~/Descargas/SampleVideoFrag400.mp4
+
+~/Descargas/Bento4-SDK-1-5-1-628.x86_64-unknowon-linux/bin/mp4dash ~/Descargas/SampleVideo1500.mp4 ~/Descargas/SampleVideo800.mp4 ~/Descargas/SampleVideo400.mp4
+
+EL SERVIDOR, ADEMAS DE streamear los fragmentos, se puede ocupar, o no, del encoding. en todo caso este sería automatizado
+
+
+Bento 4 se encarga del proceso, sin embargo no parece que aporte nada mas
+
+Tambien da la impresion de que realmente no hay que hacer nada (solo colgar el archoivo mpd)
+
+Dos ideas:
+    Formulario b ase: SUnir un video, lo propcesa, te envía un enlace y esta disponible durante 20 minutos
+    Segunda parte: Streaming live
+
+Siguiente fase: hacer un formulario e intenta darle vida
+
+2.Automatizar la compresion
+
+    2.1 - Comprobar el archivo antes de suirlo (formato, tamaño)
+    2.2 - Volver a comprobar l archivo una vez subido (es válido???)
+    2.3 - FFMPEG? XUGGLE??
+        2.3.1 FFMPEG:
+            -Comprobar sistema operativo????¡¡EENN EL SERVIDOR!!¿¿TU SABRÁS LO QUE TIENES LOL??
+            -Buscar ffmpeg o suministrar directorio en fichero de configuracion
+            -Comprueba si está
+            -Codifica las 3 calidades 
+        2.3.2 XUGGLE: 
+        ¿¿¿¿HACE TODO????
+            -Codificar el video en 3 calidades
+    2.4 FRAGMENTAR (¿? BENTO? HACER UNA LIBRERIA BASADA EN BENTO PARA JAVA? XUGGLE?
+OTRO DE LO VISTOS PREVIAMENTE?)
+    2.5 GENERAR EL MPD (BENTO?)
+
+    5.PLAYER PROPIO? JS?
+
+Desbarre:
+Yo creo que el servidor es el servidor y lo configuras tu, osea que si quieres montar un servidor con una aplicación te tienes que "rayar tu a configurarlo" osea
+    -Va a ser linux (si no te jodes)
+    -La configuración de la app podría ioncluir los paths del BENTO SDK y ffmpeg
+
+MAS DESBARRE
+
+-ASYNC SERVLET
+-AJAX?Que la página no se quede bloqueada no???.....
+
+Revisar un poco la teoría de ls servlets y de internet?¿
+Una petición tiene una respuesta.
+
+Cosas que van "quedndo atras":
+
+-Que el bash compruebe que ya existe el archivo?¿
+-Si ya existe,le cambiamos el nombre?¿o simplemente avisamos
+-Sesion, usuario.....
+js player :'(
+
+LA FUNCIONALIDAD "BASICA" ESTA IMPLEMENTADA
+
+Ahora:
+    -Autodestrucción de archivos (15 minutos)
+    -Cuentas de usuario
+        -Derecho a 3 archivos al dia (24 horas)
+    -Comprobaciones un poco mas serias:
+        -Tamaño y tipo de archivo antes de upload  *
+        -Ya existe directorio¿? antes de procesar el video *
+        -Es valido el video?¿ antes de procesar el video  +
+        -es un bot¿? ostias     +
+
+-Regulaciazion:
+    Hacer que las webs no den asco   *
+    Que manden loq ue tienen que mandar    *
+
+
+24/3/2019
+    Instalar y descargar MariaDB y su JConector
+    Configurar JNBD en tomcat
+    Crear tabla de usuarios
+    Crear tabla de archivos?? (creacion, destruccion, dueño)
+
+    libreria ffmpeg - codificar los videos
+
+    Bento? Bitmovin? - Generar el contenido dentro del software
+
+    Sesio y usuario. Paginas de login, registro ,perfil y "mis videos" (y reproductor y "MAIN")
+
+ https://mariadb.com/products/mariadb-server
+
+MariaDB [(none)]> CREATE USER 'dash'@'localhost' IDENTIFIED BY 'dashPass0'
+(como dash)
+
+ mysql -h localhost -P 3306 -u dash -p
+
+CREATE DATABASE dash
+USE dash
+DROP TABLE video;
+DROP TABLE user;
+
+CREATE TABLE user 
+    (username VARCHAR(30) NOT NULL,
+    password CHAR(65) NOT NULL,
+    mailadd VARCHAR(30) NOT NULL,
+    verifieduser BOOLEAN NOT NULL DEFAULT FALSE,
+PRIMARY KEY (username),
+UNIQUE (mailadd)
+)ENGINE = InnoDB;
+
+CREATE TABLE video
+    (filename VARCHAR(256) NOT NULL,
+    uploadtime TIMESTAMP NOT NULL,
+    deletetime TIMESTAMP NOT NULL,
+    owner VARCHAR(30) NOT NULL,
+    uploaded BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (filename,owner),
+    FOREIGN KEY (owner) REFERENCES user(username)
+)ENGINE = InnoDB;
+
+
+
+
+Context initCtx = new InitialContext();
+Context envCtx = (Context) initCtx.lookup("java:comp/env");
+DataSource ds = (DataSource)
+envCtx.lookup("jdbc/mariadb");
+
+SE BORRO LO QUE TENIA ESCRITO
+
+hayyyy
+
+-Autodestruccion de los videos (ver como: cron?) +-
+
+-Desarrollo del modelo para los videos
+    NombreCarpeta   Dueño   HoraCreacion    HoraDestruccion?    [Mas info...]
+
+    void(RegistrarVideo(nombre,dueño){
+        //Comprobar dueño
+        //Comprobar nombre no existe
+        INSERT INTO video ...
+    }
+
+    String/file/stream getVideo(nombre,dueño){
+        //Comprobar que exista
+        return video;
+    }
+
+    file[] getAllVideos(dueño){
+        //Comprobar que exista el dueño
+        return video[];
+    }
+
+(En el modelo de usuario falta *
+-que el email sea unico!
+
+-Email de confirmación: enlace, token *
+ 
+-Estructurar bien la web -> Solo usuario¿?->Intro iniciar y registrar y acerca de -> Pag personal con menu:(Subir , ver mi svideos, editar perfil, Acerca de, cerarar sesion) *
+
+-Decidir si se va a poder subir un video sin ser usuario o no -> NO!!!*
+-Seguro que quedan un monton de cosas que estaban qaqui apuntadas-*
+
+-INTEGRAR TODO EN JAVA+
+-linbreria ffmpeg+
+-bento4/bitmovin/hacerlo yo+
+
+
+LIBRERIAS
+Por ahora estoy utilizando dos librerias
+    commons-codec (para hex, no muy importante)
+    mariadb
+
+    jna?jni?jcpp?
+
+En todos los casos
+
+HACERLO TODO CON MAVEN
+
+primero probar jcodec???USABLE???
+
+
+//MAVEN  (COMPROBAR VERSIONES)
+
+<!-- https://mvnrepository.com/artifact/org.jcodec/jcodec -->
+<dependency>
+    <groupId>org.jcodec</groupId>
+    <artifactId>jcodec</artifactId>
+    <version>0.2.3</version>
+</dependency>
+
+
+
+<!-- https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client -->
+<dependency>
+    <groupId>org.mariadb.jdbc</groupId>
+    <artifactId>mariadb-java-client</artifactId>
+    <version>2.4.1</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+<dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.12</version>
+</dependency>
+
+<!-- MAIL -->
+ <dependencies>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>1.6.2</version>
+            </dependency>
+        </dependencies>
+
+
+
+
+integgrar ffmpeg con java no parece facil, no se llevan bien
+
+-HACER UN PROGRAMA/LIBRERIA EN C QUE HAGA EL TRABAJO DURO
+
+SOLO TIENE QUE RECIBIR EL NOMBRE DEL ARCHIVO Y COMO MUCHO LOS PARAMETROS
+Y DEVOLVER SI LO HA CONSEGUIDO O NO
+PERO ME PERMITE MUCHO MAS CONTROLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+
+LA OTRAS OPCIONES SON:
+Dar la vuelta y programar todo en C (UFFFFFFFFFFFFFFFFFFFFFFF)
+Utilizar librerias de java probablemente ineficientes o insuficientes
+Ver que dicen los profesores. Seguir por otro lado
+
+Otro lado:
+
+Estructuración del proyecto. Maven, SQL. 
+(QUE SE PUEDA REINSTALAR FACILMENTE EN OTRO ORDENADOR)
+
+
+
+
+
+
+
+
+
+upload video:
+    -que s eesuba en la carpeta del usuario!
+    -relacion con bd y tiempos
+
+    mejor: en dos fases (añadir video y confirmar video)
+comprobar si rte ha suqedad a medias ( usuario tambien)
+
+
+Falta: 
+    Comprobacion de 3 videos por usuario. *
+
+    Editar perfil (cambiar contraseña)
+    icono?
+    previsualizacion del video? primer frame?
+
+    borrar videos
+
+SELECT COUNT(*) AS videocount WHERE owner = 'brad'
+
+
+Vale ya está:
+    -Maven
+    -git
+    -jndb pool
+    -mas o meos esta organizado
+
+-Mejorar cleaner ( que busque archivos perdidos pero no tantas veces )
+-cleaner solo por usuario
+
+mejorar pagina de mis videos ( thumbnail?)-ffmpeg
+
+TOMCAT ssl
+
+caidas de la base de datos
+
+FFMPEG_JNI:
+
+ffmpeg -re -i /home/brad/Descargas/prueba.mp4 -map 0:v -map 0:v -map 0:v -map 0:a -c:a aac -c:v libx264 -b:v:0 1740k -b:v:1 1160k -b:v:2 580k -s:v:1 852x480 -s:v:2 426x240 -profile:v:1 baseline 	-profile:v:0 main -bf 1 -keyint_min 120 -g 120 -sc_threshold 0 	-b_strategy 0  -use_timeline 1 -use_template 1 	-window_size 5 -adaptation_sets "id=0,streams=v id=1,streams=a" -ac 2 -f dash /home/brad/Descargas/pruebaf-DASH/stream.mpd
+
+(3 canales de video  y 1 de audio)
+Conseguir el mismo resultado con libav:
+
+    -Conseguido 
+(Diagramas a parte en boli)
+
+Demux ------> Decode ---->Multiply----->Scale------> Encode----->Mux
+
+FFmpeg no muy documentado pero con bastantes ejemplos*
+API nueva con pocos ejemplos pero mejor documentada*
+extra_data: Extraer con gHex*
+
+Falta : Escalado*
+
+Siguiente paso: comprobar limpieza, limpoiar y ordenar y comentar codigo, volver al servidor*
+
+Codigo limpio y repasado. FALTA COMPROBAR MEMORY LEAKS (C), wikileaks
+
+JAVA: Seunda vuelta al codigo, añadir excepciones
+
+SSL*********
+ caidas de la BD+
+
+PRUEBAS DE PRODUCCION!!!!!!!!!!!!!!!!!!!!!
+Intentar instalar en el portatil (mariadb , eclipse? , tomcat, maven, ffmpeg, libDash(mia))
+subir codigo a la nube (github, el otro)
+
+
+ THREAD A PARTE PARA EL TRABAJO DURO???? + 
+
+ffmpeg -re -i /home/brad/Descargas/prueba.mp4 -map 0:v -map 0:v -map 0:v -map 0:a -c:a aac -c:v libx264 -b:v:0 1205k -b:v:1 803k -b:v:2 401k -s:v:1 852x480 -s:v:2 426x240 -profile:v:2 high -profile:v:1 high -profile:v:0 high -bf 2 -keyint_min 120 -g 120 -sc_threshold 0 -b_strategy 0  -use_timeline 1 -use_template 1 -window_size 5 -adaptation_sets  "id=0,streams=v id=1,streams=a" -seg_duration 3 -ac 2 -f dash /home/brad/Descargas/pruebaf-DASH/stream.mpd
+
+//Profile high maxrate bufsize
+
+Comprobar fallos de tamaño!!!************************************
+Comrpbar fallos graves  en prueba2.mp4**************************
+
+Posible cambios: funcion y app de dash con opcion de vdeo de salida
+varias calidadeS??????
+
+variables de streams que no se usan para nada¿
+
+vbv-maxrate=768
+
+????
+
+Opciones:
+    ver la forma de cuadrar los I-Frames (en el propio loop? o con las opciones)lo guay es que me puedo rallar a asegurar que sean los mismos y donde yo quiera.(seguro?)
+
+roblemas: nombre de archivo con espacio
+auido¿?
+24 fp probar¿?
+
+cosa rara con el anunciolidl
+deteccion de calidad
+-frames y paquetes¿?
+(repetir frames...?)
+parece que si que puede con los 15 fps pero el resultado es fatal...
+
+Codigo:
+da asco
+dividirlo en funciones:
+    relocalizar variables
+
+    separar
+        -inicializaciones
+
+        -subrutinas
+
+    While                                                                                               READ
+    {                                                                                                    ||            
+        1-Read                                                                                         is_video     
+                                                                            
+        2-Decode
+            -isvideo?
+            -else?
+
+        3-Resample
+            -isvideo?
+            -else?
+
+        4-Multply
+            -isvideo?
+            -else
+        for
+        {
+        5-Scale
+            -isvideo?
+                quality?
+                    low
+                    mid
+                    high
+            -else
+   
+        6-Encode
+            -isvideo?
+                quality?
+                    low
+                    mid
+                    high
+            -else
+
+        7-Write
+            -isvideo?
+                quality?   
+                    low
+                    mid
+                    high
+            -else
+
+    }

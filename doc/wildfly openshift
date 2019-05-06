@@ -1,0 +1,41 @@
+cors filter no esta en maven???? o equivalente wildfly???
+
+    JNDI Namejava:jboss/datasources/mariadb
+    Driver Namemariadb
+    Connection URLjdbc:mariadb://localhost:3306/dash
+    Enabledtrue
+    Statistics Enabledfalse
+
+
+ <datasource jndi-name="java:jboss/datasources/mariadb" pool-name="jdbc/mariadb">
+                    <connection-url>jdbc:mariadb://mariadb.mpeg-dash.svc.cluster.local:3306/dash</connection-url>
+                    <driver-class>org.mariadb.jdbc.Driver</driver-class>
+                    <driver>ServidorMpegDashJorge.war_org.mariadb.jdbc.Driver_2_4</driver>
+                    <security>
+                        <user-name>dash</user-name>
+                        <password>dashPass0</password>
+                    </security>
+                </datasource>
+
+<subsystem xmlns="urn:jboss:domain:undertow:8.0" default-server="default-server" default-virtual-host="default-host" default-servlet-container="default" default-security-domain="other" statistics-enabled="${wildfly.undertow.statistics-enabled:${wildfly.statistics-enabled:false}}">
+            <buffer-cache name="default"/>
+            <server name="default-server">
+                <http-listener name="default" socket-binding="http" redirect-socket="https" enable-http2="true"/>
+                <https-listener name="https" socket-binding="https" security-realm="ApplicationRealm" enable-http2="true"/>
+                <host name="default-host" alias="localhost">
+                    <location name="/" handler="welcome-content"/>
+                    <location name="/users" handler="usersdir-handler"/>
+                    <http-invoker security-realm="ApplicationRealm"/>
+                </host>
+            </server>
+            <servlet-container name="default">
+                <jsp-config/>
+                <websockets/>
+            </servlet-container>
+            <handlers>
+                <file name="welcome-content" path="${jboss.home.dir}/welcome-content"/>
+                <file name="usersdir-handler" path="${jboss.home.dir}/users"/>
+            </handlers>
+        </subsystem>
+
+

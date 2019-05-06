@@ -22,7 +22,11 @@ var valid = false;
 		        	{
 		        		el.innerHTML="El tamaño máximo son 10MB";
 			          	return false;
-		        	}
+		        	}		        
+		    }
+		    if( /[^a-zA-Z0-9\_.()\[\]\-\"\ ]/.test( filename) )
+		    {
+		    	  el.innerHTML="El nombre del archivo no debe contener caracteres extraños";
 		    }
 		    for(var i = 0; i < allowed_extensions.length; i++)
 		    {
@@ -35,5 +39,7 @@ var valid = false;
 		    }
 		    el.innerHTML="El archivo debe tener como extension .avi , .mp4, .flv  .3gp  ...";
 		    return false;
+		    
+		    
 		    
 		}

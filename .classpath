@@ -24,11 +24,5 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="/home/brad/Escritorio/mariadb-java-client-2.4.1.jar"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/ffmpeg_jni"/>
-	<classpathentry kind="lib" path="/ffmpeg_jni/bin">
-		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="ffmpeg_jni/jni"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
