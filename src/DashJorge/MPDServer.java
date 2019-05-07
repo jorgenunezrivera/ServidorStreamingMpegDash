@@ -178,10 +178,11 @@ public class MPDServer extends HttpServlet {
 		String userPass =(String)request.getParameter("userPass");
 		String emailAddr=(String)request.getParameter("emailAddr");
 		HttpSession session=request.getSession();  
-		session.setAttribute("waitingMailConfirmation",true);
+		//session.setAttribute("waitingMailConfirmation",true);
 		try{
 			modelo.nuevoUsuario(userName, userPass,emailAddr);
-			response.sendRedirect("/ServidorMpegDashJorge/validateMail.jsp");
+			//response.sendRedirect("/ServidorMpegDashJorge/validateMail.jsp");//NO CONFIRMAR MAIL
+			response.sendRedirect("/ServidorMpegDashJorge/upload.jsp");
 		} catch (CantCreateUserDirException | CantCreateUserException e) {
 			response.sendRedirect("/ServidorMpegDashJorge/Error.jsp?message=Error; No se ha podido crear el usuario");
 		}catch (NameAlreadyTakenException e) {
@@ -191,8 +192,7 @@ public class MPDServer extends HttpServlet {
 		
 	}
 	
-	//INICIAR SESION
-	//No comprueba que el usuario haya confirmado el mail
+	//INICIAR SESION	
 	protected void doLogin(HttpServletRequest request,HttpServletResponse response)throws IOException, ServletException {
 		String userName =(String)request.getParameter("userName");
 		String userPass =(String)request.getParameter("userPass");

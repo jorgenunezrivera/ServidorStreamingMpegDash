@@ -81,6 +81,7 @@ public class Modelo {
 	////////////////////////////////////////////////////////////////// USUARIO /////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//NUEVO USUARIO
+	//PARCHEADO PARA NO VERIFICAR MAIL
 	public void nuevoUsuario(String nombre,String pass,String mailAddr) throws NameAlreadyTakenException, CantCreateUserDirException, CantCreateUserException{
 		try{ //COMPRUEBA SI YA EXISTE UNO CON EL MISMO NOMBRE
 			PreparedStatement checkStatement = con.prepareStatement("SELECT username FROM user WHERE username = ?");
@@ -93,7 +94,7 @@ public class Modelo {
 			System.err.println(e.getMessage());
 		}
 		try {//SI NO, LO INSERTA
-			PreparedStatement statement = con.prepareStatement("INSERT INTO user VALUES (?,?,?,FALSE)");
+			PreparedStatement statement = con.prepareStatement("INSERT INTO user VALUES (?,?,?,TRUE)");//PARCHEADO PARA NO DETECTAR MAIL (FALSE)
 			statement.setString(1, nombre);
 			statement.setString(2, generateHash(pass));
 			statement.setString(3, mailAddr);
@@ -108,7 +109,7 @@ public class Modelo {
 				throw new CantCreateUserException(nombre);
 				}
 			//ENVIAR EMAIL DE CONFIRMACION Y GENERAR TOKEN
-			sendConfirmationMail(nombre,mailAddr);
+			//sendConfirmationMail(nombre,mailAddr); PARCHEADO PARA NO ENVIAR EMAIL
 		}catch (SQLException e) {
 			System.err.println(e.getMessage());
 		}					
