@@ -1,0 +1,4 @@
+Audio: comprobar formato y frame rate y si es necesario procesar
+
+Video: Comprobar resolución y si es baja no hacer calidades mejores que la de entrada
+
