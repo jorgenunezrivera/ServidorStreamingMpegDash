@@ -17,6 +17,8 @@
 			<div><a href="/ServidorMpegDashJorge/upload.jsp">Upload</a></div>
 			<div><a href="/ServidorMpegDashJorge/myvideos.jsp">Mis videos</a></div>
 			<div><a href="/ServidorMpegDashJorge/editprofile.jsp">Editar perfil</a></div>
+			<div><a href="/ServidorMpegDashJorge/search.jsp">Buscar videos</a></div>
+			<div><a href="/ServidorMpegDashJorge/admin.jsp">Administrar</a></div>
 			<div><a href="/ServidorMpegDashJorge/logout.jsp">Cerrar sesion</a></div>		
 		</div>
 		<% } %>	

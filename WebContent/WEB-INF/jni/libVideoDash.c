@@ -119,7 +119,7 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 	struct SwsContext *sclCtxs[3];
 	ResampleContext *resCtx=NULL;
 	vCodecPars codecPars[3] = {
-			{426,240,23,1216000,2432000,{1,100,8,21}},
+			{426,240,23,608000,1216000,{1,100,8,21}},
 			{854,480,22,1216000,2432000,{1,100,8,30}},
 			{1280,720,21,2496000,4992000,{1,100,8,31}}
 	};
@@ -132,10 +132,15 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 
 	inFCtx=init_in_fctx(inputFileName);
 	bestIndexes=choose_input_streams(inFCtx);
-	//Cuantas calidadeS????
 	inVWidth=inFCtx->streams[bestIndexes.v_index]->codecpar->width;
 	inVHeight=inFCtx->streams[bestIndexes.v_index]->codecpar->height;
-	numQualities=3;
+
+	if(inVHeight>=720)//Cuantas calidadeS????
+		numQualities=3;
+	else if(inVHeight>=480)
+		numQualities=2;
+	else
+		numQualities=1;
 	inVCCtx=init_in_v_cod_ctx(inFCtx,bestIndexes.v_index);
 	inACCtx=init_in_a_cod_ctx(inFCtx,bestIndexes.a_index);
 
@@ -148,6 +153,7 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 		logging("failed to allocated memory for AVFrames and AVPackets");return -1;
 	}
 	for(int i=0;i<numQualities;i++){
+		codecPars[i].width=(inVCCtx->width*codecPars[i].height/inVCCtx->height/2*2);//MANTENER EL ANCHO DEL VIDEO ORIGINAL!!!!!!pero mantener ancho par
 		sclCtxs[i]=sws_getContext(inVCCtx->width,inVCCtx->height,inVCCtx->pix_fmt,codecPars[i].width,codecPars[i].height,	AV_PIX_FMT_YUV420P,	 SWS_BILINEAR, NULL, NULL, NULL);
 		if(!sclCtxs[i]){
 			logging("Impossible to create scale context for the scaling ");return-1;
@@ -159,7 +165,7 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 	outACCtx=init_out_a_cod_ctx(outFCtx,inACCtx);
 
 	for(int i=0;i<numQualities;i++){
-			outVCCtxs[i]=init_out_v_cod_ctx(outFCtx,codecPars[i]);//CODEC OPTIONS??
+			outVCCtxs[i]=init_out_v_cod_ctx(outFCtx,codecPars[i]);
 		}
 	//loop
 	response = avformat_write_header(outFCtx,NULL);
@@ -189,7 +195,7 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 			}
 
 			resample_update_pts(resCtx,inFrame);
-			resample_fix_i_frames(resCtx,inFrame);//ke pasa aki
+			resample_fix_i_frames(resCtx,inFrame);
 			do{
 				repeat=0;
 				//logging("outpts:  %d frameInsideSeg %d     %d",inFrame->pts,resCtx->frameInsideSeg,inFrame->pts/512);
@@ -225,6 +231,16 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 	}
 	av_dump_format(inFCtx, 0, inputFileName, 0);
 	av_dump_format(outFCtx, 0, outputDir, 1);
+
+	logging("induration: %d",(int)inFCtx->duration);
+	logging("outduration: %d, (%ds)",(int)outFCtx->duration,(int)outFCtx->duration/12800);
+	logging("instreamduration: %d",(int)inFCtx->streams[0]->duration);
+	logging("outstreamduration: %d, (%ds)",(int)outFCtx->streams[0]->duration,(int)outFCtx->streams[0]->duration/12800);
+	logging("nbframes: %d",(int)inFCtx->streams[0]->nb_frames);
+	logging("outnbframes: %d",(int)outFCtx->streams[0]->nb_frames);
+
+
+
 
 	//***************************************************LIMPIAR************************************************************************************
 //(ARREGLAR)

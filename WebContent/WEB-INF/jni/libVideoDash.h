@@ -23,6 +23,7 @@ extern "C" {
  * Signature: (Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_ffmpeg_1jni_VideoDash_getVideoDash  (JNIEnv *, jobject, jstring,jstring);
+
 static void logging(const char *fmt, ...);
 int getVideoDash( const char* inputFileName,const char* outputDir);
 

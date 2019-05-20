@@ -4,9 +4,8 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Video.JS Player</title>
-	
-	
+	<title>JS Dash Player</title>
+	<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script> <!-- dash.all.min.js -->
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<style>
 	    video {
@@ -27,16 +26,7 @@
 	   	   		<p> Reproduciendo el archivo ${param.fileName}</p>
 	   	   </div> 
 		   <div id="videoDiv">
-		       <video id='dash-video' class='video-js' controls preload='auto'  controls>
-		       	<source src="${param.fileName}" type="application/dash+xml">
-		       </video>
-		       <script src='https://vjs.zencdn.net/7.5.4/video.js'></script>	<!-- video.js -->
-	<script src='videojs-dash.js'></script>	<!-- video.js -->
-	<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script> <!-- dash.all.min.js -->
-	<script>
-	var player = videojs('dash-video');
-	player.play();
-	</script> 
+		       <video data-dashjs-player src="${param.fileName}" type="application/dash+xml" controls></video>
 		   </div>
 	   </div>
    </div>

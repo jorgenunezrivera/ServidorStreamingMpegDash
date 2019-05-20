@@ -10,10 +10,10 @@ vpath %.class $(CLASS_PATH)/ffmpeg_jni/
 
 
 all :libVideoDash.so VideoDash
-libVideoDash.so : ffmpeg_jni_VideoThumbnail.c ffmpeg_jni_VideoThumbnail.h libVideoDash.c libVideoDash.h 
-	gcc -shared -fpic -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -L"/usr/local/lib" ffmpeg_jni_VideoThumbnail.c libVideoDash.c -lavcodec -lavformat -lavutil -lswscale -o $@
-VideoDash 	 : ffmpeg_jni_VideoThumbnail.c ffmpeg_jni_VideoThumbnail.h libVideoDash.c ffmpeg_jni_VideoDash.h VideoDash.c VideoDash.h
-	gcc -g -O0 -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -L"/usr/local/lib" ffmpeg_jni_VideoThumbnail.c libVideoDash.c  VideoDash.c -lavcodec -lavformat -lavutil -lswscale -lm -o $@
+libVideoDash.so : ffmpeg_jni_VideoThumbnail.c ffmpeg_jni_VideoThumbnail.h libVideoDash.c libVideoDash.h remuxMP4.c remuxMP4.h
+	gcc -shared -fpic -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -L"/usr/local/lib" ffmpeg_jni_VideoThumbnail.c libVideoDash.c remuxMP4.c -lavcodec -lavformat -lavutil -lswscale -o $@
+VideoDash 	 : ffmpeg_jni_VideoThumbnail.c ffmpeg_jni_VideoThumbnail.h libVideoDash.c libVideoDash.h VideoDash.c VideoDash.h remuxMP4.c remuxMP4.h
+	gcc -g -O0 -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -L"/usr/local/lib" ffmpeg_jni_VideoThumbnail.c libVideoDash.c  VideoDash.c remuxMP4.c  -lavcodec -lavformat -lavutil -lswscale -lm -o $@
 # $@ matches the target, $< matches the first dependency
 #libVideoThumbnail.so : ffmpeg_jni_VideoThumbnail.c ffmpeg_jni_VideoThumbnail.h
 	#gcc -v -shared -fpic -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -L"/usr/local/lib"  $<  -lavcodec -lavformat -lavutil -lswscale -o $@

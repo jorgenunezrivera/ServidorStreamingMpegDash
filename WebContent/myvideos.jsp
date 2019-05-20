@@ -6,7 +6,7 @@
 <head>
 	<meta charset="UTF-8">
     <title>Servidor Streaming MPEG DASH</title>
-    <script src=validateUpload.js></script>
+    <script src=showStreamInfo.js></script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <style>
     	body{
@@ -14,7 +14,7 @@
     	}
     </style>
 </head>
-<body>
+<body >
 <%String userName=(String)session.getAttribute("userName"); 
 if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 <div id=container>
@@ -23,22 +23,37 @@ if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 		
 		<div id="infoDiv">
 			<h2>Mis videos</h2>
-			<p>Aqui podrás ver tus videos. Recuerda que solo puedes tener tres videos y que tus videos se borrarán automáticamente a las 24 horas</p>					    
+			<p>Aqui podrás ver tus videos.</p>					    
 		</div>
 		<div id="videosDiv">
 			<%Modelo modelo=Modelo.getInstance();
 			String[] videos=modelo.obtenerVideosUsuario(userName);
 			for(String video : videos){
+				
 			%>
 				<div class="videoContainer">
-					<p><%= video %></p>
+					<h2><%= video %></h2>
 					<div>
-						<a href="player.jsp?fileName=users/<%= userName %>/<%= video%>/stream.mpd">
+						<a href="player.jsp?fileName=users/<%= userName %>/<%= video%>stream.mpd">
 						<img src="users/<%= userName %>/<%= video%>/pre.jpg"> </img></a></br>
 					</div>	
-					
-					<a href="player.jsp?fileName=users/<%= userName %>/<%= video%>/stream.mpd"><img class="button" src="play.png"/></a>
+					<div>
+						<%String infovideo = Modelo.getInstance().obtenerInfoVideo(video, userName);
+						  int streamInfoIndex=infovideo.indexOf("Video");
+						  String simpleInfo=infovideo.substring(0,streamInfoIndex);
+						  String streamInfo=infovideo.substring(streamInfoIndex);
+						%>
+						<p> <%=simpleInfo%> </p>
+						
+					</div>
+					<div>
+					<a href="player.jsp?fileName=users/<%= userName %>/<%= video%>stream.mpd"><img class="button" src="play.png"/></a>
 					<a href="MPDServer/delete?fileName=<%= video%>&userName=<%=userName%>"><img class="button" src="delete.png"/></a>
+					</div>
+					<input type='submit' value= 'Ver informacion de los streams' onClick='showStreamInfo()'/>
+						<div id="streamInfoDiv" style="display:none;">
+							<p>	<%= streamInfo %> </p>	
+						</div> 					
 				</div>
 			<% } %>
 		</div>

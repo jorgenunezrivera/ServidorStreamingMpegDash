@@ -17,6 +17,8 @@ import Exceptions.CantRegisterVideoException;
 import Exceptions.NameAlreadyTakenException;
 import Exceptions.UserDoesntExistException;
 import Exceptions.VideoDoesntExistException;
+import Exceptions.VideoIsEncodingException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,9 +44,11 @@ import org.apache.commons.codec.binary.Hex;
 public class Modelo {
 	
 	private static Modelo modelo_instance = null;
-	private Connection con;
+	private static Connection con;
+	private static DataSource ds;
 	private Properties serverProperties;
-	TimedClean clean;
+	private ProcessQueue queue;
+	//TimedClean clean;
 	private Modelo() {
 		Context initCtx; 
 		Context envCtx;
@@ -52,7 +56,7 @@ public class Modelo {
 		try {
 			initCtx = new InitialContext();
 			envCtx = (Context) initCtx.lookup("java:comp/env");
-			DataSource ds = (DataSource)envCtx.lookup("jdbc/mariadb");
+			ds = (DataSource)envCtx.lookup("jdbc/mariadb");
 			con=ds.getConnection();
 		} catch (NamingException e1) {
 			System.err.println("Imposible conectar a mariadb: nombre de recurso incorrecto");
@@ -68,12 +72,23 @@ public class Modelo {
 		} catch (IOException e) {
 			System.err.println("Se ha producido un error leyendo el fichero de configuracion ");
 		}
-		clean = new TimedClean(this);
+		queue=new ProcessQueue();
+		Thread thread = new Thread(queue);
+		thread.start();
+		
+		//clean = new TimedClean(this);
 	}
 	
 	public static Modelo getInstance() {
 			if(modelo_instance==null) {
 				modelo_instance= new Modelo();
+			}else {
+				try {
+					if(con.isClosed())
+						con=ds.getConnection();
+				} catch (SQLException e) {
+					System.err.println("No se ha podido reiniciar la conexion");
+				}
 			}
 			return modelo_instance;
 	}
@@ -116,6 +131,7 @@ public class Modelo {
 	}
 	
 	//BORRAR USUARIO
+	//Y sus videos??
 	public void borrarUsuario(String nombre) throws UserDoesntExistException {
 		try{
 			PreparedStatement statement = con.prepareStatement("DELETE FROM user WHERE username = ?");
@@ -190,24 +206,25 @@ public class Modelo {
 	/////////////////////////////////////////////////////////////////VIDEO///////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Registrar video (Throws alreadyhasthreevideos,cannotregistervideo
-	public void registrarVideo(String nombreArchivo,String nombrePropietario) throws AlreadyHasThreeVideosException, CantRegisterVideoException {
+	public void registrarVideo(String nombreArchivo,String nombrePropietario,String titulo, String descripcion,Boolean publicVideo) throws AlreadyHasThreeVideosException, CantRegisterVideoException {
 		try {
 			//LImpiar y comprobar si ya hay 3 videos
-			clean.run();
+			//clean.run();
 			PreparedStatement countStatement = con.prepareStatement("SELECT COUNT(*) AS videocount FROM video WHERE owner = ?");
 			countStatement.setString(1, nombrePropietario);
 			countStatement.execute();
 			ResultSet countSet = countStatement.getResultSet();
 			countSet.next();
 			int count = countSet.getInt("videocount");
-			if(count<3) {
+			if(count<10) {
 				Timestamp now = new Timestamp(Calendar.getInstance().getTimeInMillis()); 
-				Timestamp deletetime=new Timestamp(Calendar.getInstance().getTimeInMillis()+1000*60*60*24); 
-				PreparedStatement statement = con.prepareStatement("INSERT INTO video VALUES(?,?,?,?,FALSE);");
+				PreparedStatement statement = con.prepareStatement("INSERT INTO video VALUES(?,?,?,?,?,FALSE,?,-1);");
 				statement.setString(1, nombreArchivo);
 				statement.setTimestamp(2,now );
-				statement.setTimestamp(3,deletetime );
-				statement.setString(4, nombrePropietario);
+				statement.setString(3, titulo);
+				statement.setString(4, descripcion);
+				statement.setString(5, nombrePropietario);
+				statement.setBoolean(6, publicVideo);
 				statement.execute();
 				int updated = statement.getUpdateCount();
 				if(updated==0) {
@@ -221,15 +238,41 @@ public class Modelo {
 		}		
 	}
 	
-	//REISTRAR VIDEO CARGADO (Anota en la BD que el video está cargado y convertido) (comprobar que haga todas las pruebas) (THROWS CANTREGISTERVIDEO 
-	public void registrarVideoCargado(String nombreArchivo,String nombrePropietario) throws CantRegisterVideoException {
+	public void registrarStreamVideo(String dirName,String UserName,int stream_index,int bit_rate,int width,int height) throws CantRegisterVideoException {
 		try {
-			PreparedStatement statement = con.prepareStatement("UPDATE video SET uploaded=TRUE WHERE filename= ? AND owner = ?;");
-			statement.setString(1, nombreArchivo);
-			statement.setString(2, nombrePropietario);
+			PreparedStatement statement = con.prepareStatement("INSERT INTO stream VALUES (?,?,?,?,?,?)");
+			statement.setInt(1,stream_index);
+			statement.setInt(2,width);
+			statement.setInt(3,height);
+			statement.setInt(4,bit_rate);
+			statement.setString(5, dirName);
+			statement.setString(6,UserName);
 			statement.execute();
 			int updated = statement.getUpdateCount();
 			if(updated==0) {
+				System.err.println("nombrearchivo: "+ dirName + "; nombre propietario: "+ UserName);
+				throw new CantRegisterVideoException(dirName);
+			}else {
+				
+			}
+		}catch (SQLException e) {
+			System.err.println(e.getMessage());
+		}
+		
+	}
+
+	
+	//REISTRAR VIDEO CARGADO (Anota en la BD que el video está cargado y convertido) (comprobar que haga todas las pruebas) (THROWS CANTREGISTERVIDEO 
+	public void registrarVideoCargado(String nombreArchivo,String nombrePropietario,int duracion) throws CantRegisterVideoException {
+		try {
+			PreparedStatement statement = con.prepareStatement("UPDATE video SET uploaded=TRUE,duration=? WHERE filename= ? AND owner = ?;");
+			statement.setInt(1,duracion);
+			statement.setString(2, nombreArchivo);
+			statement.setString(3, nombrePropietario);
+			statement.execute();
+			int updated = statement.getUpdateCount();
+			if(updated==0) {
+				System.err.println("nombrearchivo: "+ nombreArchivo + "; nombre propietario: "+ nombrePropietario);
 				throw new CantRegisterVideoException(nombreArchivo);
 			}else {
 				
@@ -252,6 +295,11 @@ public class Modelo {
 			if(selectStatement.getResultSet().getBoolean(5)) {
 				fileUploaded=true;
 			}
+			PreparedStatement streamStatement = con.prepareStatement("DELETE FROM stream WHERE video_filename = ? AND video_owner = ?");
+			streamStatement.setString(1, nombreArchivo);
+			streamStatement.setString(2, nombrePropietario);
+			streamStatement.execute();
+			
 			PreparedStatement statement = con.prepareStatement("DELETE FROM video WHERE filename = ? AND owner = ?");
 			statement.setString(1, nombreArchivo);
 			statement.setString(2, nombrePropietario);
@@ -262,7 +310,7 @@ public class Modelo {
 				throw new CannotDeleteVideoException(nombreArchivo);
 			}
 			if(fileUploaded) {
-				File file = new File(serverProperties.getProperty("usersdir")+nombrePropietario+File.separator +nombreArchivo);//Usar separador universal?
+				File file = new File(serverProperties.getProperty("usersdir")+nombrePropietario+File.separator +nombreArchivo);
 				recursiveDelete(file);
 			}
 		}catch (SQLException e) {
@@ -272,7 +320,7 @@ public class Modelo {
 
 	
 	//OBTENER VIDEO 
-	public String obtenerVideo(String nombreArchivo,String nombrePropietario) throws VideoDoesntExistException {
+	public String obtenerEnlaceVideo(String nombreArchivo,String nombrePropietario) throws VideoDoesntExistException,VideoIsEncodingException {
 		try {
 			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE filename = ? AND owner = ?");
 			statement.setString(1, nombreArchivo);
@@ -283,6 +331,8 @@ public class Modelo {
 				boolean isUploaded = resultado.getBoolean(5);
 				if(isUploaded) {
 					return serverProperties.getProperty("usersdir")+nombrePropietario+"/"+resultado.getString(1);
+				}else {
+					throw new VideoIsEncodingException(nombreArchivo,nombrePropietario);
 				}
 			}else {
 				throw new VideoDoesntExistException(nombreArchivo,nombrePropietario);	
@@ -294,64 +344,111 @@ public class Modelo {
 		return "";
 	}
 	
+	public String obtenerInfoVideo(String nombreArchivo,String nombrePropietario) throws VideoDoesntExistException, VideoIsEncodingException {
+		String info="";
+		try {
+			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE filename = ? AND owner = ?");
+			statement.setString(1, nombreArchivo);
+			statement.setString(2, nombrePropietario);
+			statement.execute();
+			ResultSet resultado=statement.getResultSet();
+			if(resultado.next()) {
+				boolean isUploaded = resultado.getBoolean(6);
+				if(isUploaded) {
+					info+="Titulo: "+resultado.getString(3)+"<br>";
+					info+="Descripcion: "+resultado.getString(4)+"<br>";
+					info+="Propietario: "+resultado.getString(5)+"<br>";
+					info+="Nombre del archivo: "+resultado.getString(1)+"<br>";
+					info+="Uploaded at: "+resultado.getDate(2).toString()+"<br>";
+					info+="Duration: "+resultado.getInt(8)+"<br>";
+					PreparedStatement streamStatement = con.prepareStatement("SELECT * FROM stream WHERE video_filename = ? AND video_owner = ?");
+					streamStatement.setString(1, nombreArchivo);
+					streamStatement.setString(2, nombrePropietario);
+					streamStatement.execute();
+					ResultSet resultadoStreams=streamStatement.getResultSet();
+					while(resultadoStreams.next()) {					
+						info+="Video stream #"+resultadoStreams.getInt(1)+"<br>";
+						info+="Video bitrate: "+resultadoStreams.getInt(4)+"<br>";
+						info+="Video resolution: "+resultadoStreams.getInt(2)+"x"+resultadoStreams.getInt(3)+"<br>";
+					}
+					return info;
+
+
+				}else {
+					info+="Titulo: "+resultado.getString(3)+"<br>";
+					info+="Descripcion: "+resultado.getString(4)+"<br>";
+					info+="Propietario: "+resultado.getString(5)+"<br>";
+					info+="El video todavía no ha sido procesado!!!!<br>";
+				}
+			}else {
+				info+="El video solicitado no se ha encontrado!!!!<br>";	
+			}
+
+	}catch (SQLException e) {
+		System.err.println(e.getMessage());
+	}	
+	return "";
+}
+
+	
 	//OBTENER VIDEOS USUARIO
 	public String[] obtenerVideosUsuario(String nombrePropietario) {
 		String[] videos=null;
 		try {
-			PreparedStatement countStatement = con.prepareStatement("SELECT COUNT(*) as rowcount FROM video Where owner = ?");
+			PreparedStatement countStatement = con.prepareStatement("SELECT COUNT(*) as rowcount FROM video Where owner = ? and uploaded = true");
 			countStatement.setString(1, nombrePropietario);
 			countStatement.execute();
 			ResultSet countRS= countStatement.getResultSet();
 			countRS.next();
 			int count=countRS.getInt("rowcount");
 			videos=new String[count];
-			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE owner = ?");
+			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE owner = ? and uploaded = true");
 			statement.setString(1, nombrePropietario);
 			statement.execute();
 			ResultSet resultado=statement.getResultSet();
 			int i=0;
 			while(resultado.next()) {
-				boolean isUploaded = resultado.getBoolean(5);
-				if(isUploaded) {
-					videos[i]=resultado.getString(1);
-					i++;
-				}				
+				videos[i]=resultado.getString(1);
+				i++;								
 			}
 		}catch (SQLException e) {
 			System.err.println(e.getMessage());
 			}	
 		return videos;
 	}
+
 	
-	//LIMPIAR VIDEOS
-	public int limpiarVideos() {	//Llamado por la clase "Reloj" para limpiar , devuelve el numero de videos borrados 
-		int borrados=0;				//Borra los videos que han pasado su fecha de caducidad. Tmbien podría bsucar archivos sin entrada en la BD y viceversa
+	//BUSCAR VIDEOS
+	public String[] buscarVideos(String search) {
+		String[] videos=null;
 		try {
-			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE deletetime < NOW();");
+			PreparedStatement countStatement = con.prepareStatement("SELECT COUNT(*) as rowcount FROM video Where public = true and uploaded = true and (title like ? or description like ?) ");
+			countStatement.setString(1, "%"+search+"%");
+			countStatement.setString(2, "%"+search+"%");
+			countStatement.execute();
+			ResultSet countRS= countStatement.getResultSet();
+			countRS.next();
+			int count=countRS.getInt("rowcount");
+			videos=new String[count];
+			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE uploaded = trueand public = true and (title like ? or description like ?)");
+			statement.setString(1, "%"+search+"%");
+			statement.setString(2, "%"+search+"%");
+			System.err.println("Search");
+			System.err.println(statement.toString());
 			statement.execute();
-			ResultSet resultSet=statement.getResultSet();
-			while(resultSet.next()) {
-				String fileName =resultSet.getString(1);
-				String ownerName = resultSet.getString(4);
-				System.out.println(serverProperties.getProperty("usersdir")+ownerName+"/"+fileName);
-				File file = new File(serverProperties.getProperty("usersdir")+ownerName+"/"+fileName);//Usar separador universal?
-				if(recursiveDelete(file)) {
-					PreparedStatement deleteStatement = con.prepareStatement("DELETE FROM video WHERE filename = (?) AND owner = (?)");
-					deleteStatement.setString(1, fileName);
-					deleteStatement.setString(2, ownerName);
-					deleteStatement.execute();
-					borrados+=deleteStatement.getUpdateCount();
-				}
+			ResultSet resultado=statement.getResultSet();
+			int i=0;
+			while(resultado.next()) {
+				String username=resultado.getString(5);
+				String filename=resultado.getString(1);
+				videos[i]=username+"/"+filename;
+				i++;								
 			}
 		}catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println("error al limpiar :" + e.getMessage());
-			return -1;
-		}		
-		return borrados;
-	}
-	
-	
+			System.err.println(e.getMessage());
+			}	
+		return videos;
+	}	
 	
 	//FUNCIONES AUXILIARES  O DE APOYO
 	
@@ -469,10 +566,19 @@ public class Modelo {
 		return false;
 	}		
 	
+	public String[] getQueue(){
+		System.err.println("GetQueue");
+		//System.err.println(statement.toString());
+		return queue.getQueue();
+	}
+	
+	public void addToQueue(String filename) {
+		queue.addString(filename);
+	}
 	
 	//CLOSE cierra l conexion con mariadb y cierra l limpiador tambien
 	public void close() {
-		clean.destroy();
+		//clean.destroy();
 		try {
 			con.close();
 		} catch (SQLException e) {

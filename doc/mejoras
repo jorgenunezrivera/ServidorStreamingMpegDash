@@ -1,4 +1,102 @@
 Audio: comprobar formato y frame rate y si es necesario procesar
+	-sw_audio_resample? +++++++++++++++++++++++
 
-Video: Comprobar resolución y si es baja no hacer calidades mejores que la de entrada
+Video: FULL HD?
+	COMPROBAR ASPECT RATIO?FORZAR SOLO EL ALTO?????****************************************?**(for<zar ancho par)
 
+Web:
+	-Un temita css decente +++++++++++++++
+	
+	-Que la web de información sobre los videos y la reproducción
+		modificar player.jsp para añadir :
+			-titulo y descripcion
+			-resoluciones y bitrate de cada calidad
+		modificar misvideos.jsp para añadir:
+			-titulo y descripción *********************
+			-numero de calidades
+			-Para cada calidad resolucion y bitrate (medio)
+			
+			DAO del video:
+				-Versio completa¿?: objetos video y stream en la base de datos
+				cada stream hace referencia al video al que pertenece
+					Video: Duracion,resolucon original, publico?
+					Stream: Ancho, alto, bitrate, refVideo
+				-Version reducida: objeto video solo
+					-Duracion,publico
+					ffmpeg->getDuration(videoFile)->int duration (segs)
+					ffmpeg->getNStreams(videoFile)->int nstreams
+					ffmpeg->getStreamInfo(videoFile,nStream)->int bitrate,int ancho	
+				-Pasarlo por texto:
+					-Duracion,nstreams********************************************
+					-Para cada stream: ancho, alto, bitrate***************************************
+					
+					
+					
+			
+	-Una pagina "backend" que permita ver el estado de la cola (y limpiar la base de datos?)*********************
+		crear admin.jsp que incluya:
+			-Progreso de la cola*************************
+			-administracion de bd???++++++
+			
+	-Una pagina buscador (titulo, descripicion)
+		crear search.jsp que incluya un boton y un cuadro de texto*********************************************
+		crear searchresult.jsp que muestre los videos encontrados ( en el mismo formato que mis videos************************
+		
+		
+	
+Modelo : 
+	modificar video: 
+		añadir titulo y descripcion***********************************
+			-Modificar upload.jsp para añadir título y descripción ***************************
+			-Modificar MPDServer.java para añadir titulo y descripcion*****************************
+			-Modificar modelo y sql***añadir video publico o privado. Añadir calidades a la BD(cuantas). Añadir tempo que s etardo e comprimirlo y duracion del vidieo?¿hacer funcion ffmpeg rapidita que saque info del video¿?
+			-modificado el modelo . añadida tabl stream.***************************************************************
+			-Mopdificar (borrar video) para que borre sus streams*******************************************************
+			-crear getvideoinfo****************************
+	modificar usuario
+		añadir administrador¿? ++++++++++++++++++++		
+	modificar video:
+		Eliminar maximo de 3 videos¿?++++++++++++++++++++++
+	
+Programa:
+	-Remuxer? (Para descargar)********************************************************
+	-getStreams (para obtener los strems y elegir que archivo descargar) ---------------
+	-o bien simplemente get num streams*********************************************
+	int get_num_streams(filename)**********************************************
+	int remux_mp4(filename,stream_index)*******************************************
+	
+	-Implementar cola de procesos.**********************************************************
+	-Ahora puedo hacer que de un poco mas de info*******************************************
+	-Log de compresion a dash informativo en la carpeta
+	
+	
+Reproductor: 
+	-Intentar que muestre info sobre los segmento s (si no log)
+	
+LOGS
+	-Log de cada conversion en la carpeta
+	-Log de segmentos solicitados????
+	
+SCRIPTS
+	-Pruebas de velocidad con varias herramientas	
+	
+MEMORIA:
+	-Buscar info (esquemas)
+	-Ver de que temas voy a hablar
+		-DASH	(el más importante)
+		-MP4 H264 y AAC
+			-que configuración he usado y porqué
+				-VBR vs CBR
+				-b frames, distancia entre keyframes
+		-FFMPEG
+			-Estado de la documentación
+			-Modulos y diagrama de uso
+		-JNI
+			-Porque lo he usado
+			
+			
+repasar lo que tengo escrito
+				
+					
+			
+						 

@@ -8,11 +8,9 @@ import java.util.Properties;
 
 
 public class VideoDash {
-	static VideoDash instance=null;
-	Properties properties;
-	String libdir;
-	
-	VideoDash(){
+	static {
+		Properties properties;
+		String libdir;
 		properties=new Properties();
 		InputStream input = VideoDash.class.getResourceAsStream("jni.properties");
 		try {
@@ -24,20 +22,30 @@ public class VideoDash {
 		System.load(libdir+"libVideoDash.so");
 	}
 	
-	public static VideoDash getInstance()  {
-		if(instance==null) {
-			instance= new VideoDash();
-		}else {
-			
-		}
-		return instance;
-}
+	
+	
+	VideoDash(){
+		
+	}
+	
+	
+
 	
 private native int getVideoDash(String filename,String outDir); 
+private native int getVideoMp4(String filename,String outDir);
+private native String getVideoInfo(String filename);
 
-	public static int videoDash(String filename,String outDir) {
-		int result = new VideoDash().getVideoDash(filename,outDir);
-		return result;
+public static int videoDash(String filename,String outDir) {
+	int result = new VideoDash().getVideoDash(filename,outDir);
+	return result;
 }	
+public static int videoMp4(String filename,String outDir) {
+	int result = new VideoDash().getVideoMp4(filename,outDir);
+	return result;
+}
+public static String videoInfo(String filename) {
+	return new VideoDash().getVideoInfo(filename);
+}
+	
 	
 }

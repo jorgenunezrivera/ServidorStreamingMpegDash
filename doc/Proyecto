@@ -159,14 +159,27 @@ UNIQUE (mailadd)
 CREATE TABLE video
     (filename VARCHAR(256) NOT NULL,
     uploadtime TIMESTAMP NOT NULL,
-    deletetime TIMESTAMP NOT NULL,
+    title VARCHAR(256) NOT NULL,
+    description VARCHAR(512) NOT NULL,
     owner VARCHAR(30) NOT NULL,
     uploaded BOOLEAN NOT NULL DEFAULT FALSE,
+    public BOOLEAN NOT NULL DEFAULT FALSE,
+    duration INT NOT NULL DEFAULT 0,
     PRIMARY KEY (filename,owner),
-    FOREIGN KEY (owner) REFERENCES user(username)
+    FOREIGN KEY (video_owner) REFERENCES user(username)
 )ENGINE = InnoDB;
 
-
+CREATE TABLE stream
+	(stream_index INT NOT NULL,
+	width INT NOT NULL,
+	height INT NOT NULL,
+	bitrate INT NOT NULL,
+	video_filename VARCHAR(256) NOT NULL,
+	video_owner VARCHAR(256) NOT NULL,
+	PRIMARY KEY(stream_index,video_filename,video_owner),
+	FOREIGN KEY (video_filename) REFERENCES video(filename),
+	FOREIGN KEY (owner) REFERENCES user(username)
+)ENGINE = InnoDB;
 
 
 Context initCtx = new InitialContext();

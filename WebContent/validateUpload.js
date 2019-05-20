@@ -18,9 +18,9 @@ var valid = false;
 		    }
 		    else {
 		        file = input_element.files[0];
-		        if(file.size>10*1024*1024)
+		        if(file.size>35*1024*1024)
 		        	{
-		        		el.innerHTML="El tamaño máximo son 10MB";
+		        		el.innerHTML="El tamaño máximo son 35MB";
 			          	return false;
 		        	}		        
 		    }
