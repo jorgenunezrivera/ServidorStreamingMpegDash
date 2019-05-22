@@ -23,8 +23,7 @@
 			<h2>Editar perfil</h2>
 			<p>Cambiar contraseña</p>			
 		</div>
-		<div id="newPasswordDiv">
-			<div id="formDiv">
+		<div id="formDiv">
 			<h3>Rellena estos campos para cambiar de contraseña.</h3>
 			<form action='MPDServer/changepass' method='post' >
 				<p>Contraseña antigua</p><input type='password' name='userPass' id='userPass' required> 
@@ -33,10 +32,13 @@
 				<p></p><input type='submit' value='Cambiar contraseña' onClick='return validateNewPass();'> 
 				<!-- Escribir función de validación -->
 			</form>
-			</div>
 		</div>
+		
 		<div id="feedback">
 		</div>
+		        <div id="notification">
+		</div>
+		
 	</div>
 </div>
 </body>

@@ -3,7 +3,9 @@ package DashJorge;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Properties;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -61,14 +63,20 @@ public class MPDServer extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String URI=request.getRequestURI();
+		System.out.println(URI);
 		response.setStatus(HttpServletResponse.SC_NOT_FOUND              );
-		ServletOutputStream os =response.getOutputStream();
+		//ServletOutputStream os =response.getOutputStream();
 		if(URI.equals("/ServidorMpegDashJorge/MPDServer/confirmMail")) {
 			doConfirmEmail(request,response);
 		}else if (URI.equals("/ServidorMpegDashJorge/MPDServer/delete")) {
 			doDelete(request,response);
+		}else if (URI.equals("/ServidorMpegDashJorge/MPDServer/getNotifications")) {
+			doGetNotifications(request,response);
+		}else if (URI.equals("/ServidorMpegDashJorge/MPDServer/download")) {
+			doDownload(request,response);
 		}else{			
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			ServletOutputStream os =response.getOutputStream();
 			os.println("El recurso "+ URI + " no está disponible para ti");
 			return;
 		}
@@ -238,7 +246,44 @@ public class MPDServer extends HttpServlet {
 		}
 	}
 	
+	protected void doGetNotifications(HttpServletRequest request,HttpServletResponse response)throws IOException {
+		PrintWriter out=response.getWriter();
+		HttpSession session=request.getSession();  
+		String userName=(String)session.getAttribute("userName");
+		out.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
+		if(userName.equals("")) {
+			out.println("<p>No estas iniciado!!</p>");
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+		List<String> notifications=modelo.getNotifications(userName);
+		if(notifications.isEmpty()) {
+			out.println("<div class='notificationDiv'></div>");
+			response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+			return;
+		}
+		for(String notification: notifications ) {
+			out.println("<div class='notificationDiv'> <p>"+notification + "</p></div>");
+		}
+		response.setStatus(HttpServletResponse.SC_OK);
+		return;
+	}
 	
+	public void doDownload(HttpServletRequest request,HttpServletResponse response)throws IOException {
+		//String userName=(String)session.getAttribute("userName");
+		String ownerName=(String)request.getParameter("userName");
+		String fileName=(String)request.getParameter("fileName");
+		int numStreams=Integer.parseInt(request.getParameter("numStreams"));
+		String outFileName=fileName.substring(0,fileName.length()-1)+".mp4";
+		String dirName=serverProperties.getProperty("usersdir")+ownerName+"/"+fileName;
+		String completeName=dirName+"stream.mpd";
+		String outName=dirName+outFileName;
+		System.out.println(completeName);
+		System.out.println(outName);
+		System.out.println(numStreams);
+		VideoDash.videoMp4(completeName, outName,numStreams-1);
+		response.sendRedirect("/ServidorMpegDashJorge/users/"+ownerName+"/"+fileName+outFileName);
+	}
 	@Override
 	public void destroy() {
 		modelo.close();

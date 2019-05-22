@@ -29,10 +29,10 @@
 		<div id="formDiv">
 			<h3>¡Prueba el servicio!Carga un archivo al servidor </h3>
 			<form action='MPDServer/upload' method='post' enctype='multipart/form-data'>
-				<p> Titulo del video </p><input type='text' name='title' id='title' value='Titulo'> <br>
-				<p>Descripción </p> <textarea  name='description' id='description' rows=4 cols=50 style='resize:none' >Introduce aqui la descripción del video</textarea> <br>
-			    <p>Archivo </p><input type='file' name='videoFile' id='videoFile'> <br>
-			    <p>Video publico </p><input type='checkBox' name='publicVideo' id='publicVideo' value='off'> <br>			    
+				<p> Titulo del video </p><br><input type='text' name='title' id='title' value='Titulo'> <br>
+				<p>Descripción </p><br> <textarea  name='description' id='description' rows=4 cols=50 style='resize:none' >Introduce aqui la descripción del video</textarea> <br>
+			    <p>Archivo </p><br><input type='file' name='videoFile' id='videoFile'> <br>
+			    <p>Video publico </p><br><input type='checkBox' name='publicVideo' id='publicVideo' value='off'> <br>			    
 			    <input type='submit' value='Aceptar' onClick='return validateFileUpload();'> <br>
 			</form>
 		</div>
@@ -41,6 +41,9 @@
 		</div>
 		<div id="feedback">
 		</div>
+		        <div id="notification">
+		</div>
+		
 	</div>
 </div>
 </body>

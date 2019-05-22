@@ -5,7 +5,8 @@ Video: FULL HD?
 	COMPROBAR ASPECT RATIO?FORZAR SOLO EL ALTO?????****************************************?**(for<zar ancho par)
 
 Web:
-	-Un temita css decente +++++++++++++++
+	-Un temita css decente************************
+	-Qe myvideos y admin se actualicen con ajax???++++++++++++++++++++++++
 	
 	-Que la web de información sobre los videos y la reproducción
 		modificar player.jsp para añadir :
@@ -71,11 +72,11 @@ Programa:
 	
 	
 Reproductor: 
-	-Intentar que muestre info sobre los segmento s (si no log)
+	-Intentar que muestre info sobre los segmento s (si no log)---------------------------
 	
 LOGS
-	-Log de cada conversion en la carpeta
-	-Log de segmentos solicitados????
+	-Log de cada conversion en la carpeta***************************
+	-Log de segmentos solicitados????----------------------------------
 	
 SCRIPTS
 	-Pruebas de velocidad con varias herramientas	

@@ -31,10 +31,10 @@ if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 			for(String video : videos){
 				
 			%>
-				<div class="videoContainer">
+				<div class="videoInfoContainer">
 					<h2><%= video %></h2>
 					<div>
-						<a href="player.jsp?fileName=users/<%= userName %>/<%= video%>stream.mpd">
+						<a class="videoLink" href="player.jsp?fileName=users/<%= userName %>/<%= video%>stream.mpd">
 						<img src="users/<%= userName %>/<%= video%>/pre.jpg"> </img></a></br>
 					</div>	
 					<div>
@@ -42,18 +42,20 @@ if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 						  int streamInfoIndex=infovideo.indexOf("Video");
 						  String simpleInfo=infovideo.substring(0,streamInfoIndex);
 						  String streamInfo=infovideo.substring(streamInfoIndex);
+                          int numStreams=Modelo.getInstance().obtenerNumStreams(userName, video);
 						%>
 						<p> <%=simpleInfo%> </p>
 						
 					</div>
-					<div>
-					<a href="player.jsp?fileName=users/<%= userName %>/<%= video%>stream.mpd"><img class="button" src="play.png"/></a>
-					<a href="MPDServer/delete?fileName=<%= video%>&userName=<%=userName%>"><img class="button" src="delete.png"/></a>
-					</div>
-					<input type='submit' value= 'Ver informacion de los streams' onClick='showStreamInfo()'/>
-						<div id="streamInfoDiv" style="display:none;">
+                    <div>
+					<a href="MPDServer/delete?fileName=<%= video%>&userName=<%=userName%>" class="boton">Borrar video</a>
+					<a onclick="showStreams('link <%= video%>');return false;" href="#" class="boton">Mostrar streams</a>
+					<a href="users/<%= userName%>/<%= video%>encode.log" class="boton">Ver log</a>
+					<a href="MPDServer/download?userName=<%= userName%>&fileName=<%= video%>&numStreams=<%= numStreams %>" class="boton">Descargar</a>
+                </div>
+					<div id="link <%= video%>"  style="display:none;float:none">
 							<p>	<%= streamInfo %> </p>	
-						</div> 					
+					</div> 					
 				</div>
 			<% } %>
 		</div>
@@ -62,6 +64,9 @@ if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 		</div>
 		<div id="feedback">
 		</div>
+		        <div id="notification">
+		</div>
+		
 	</div>
 </div>
 </body>

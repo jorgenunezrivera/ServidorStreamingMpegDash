@@ -32,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Properties;
 
 import javax.crypto.SecretKeyFactory;
@@ -360,7 +361,7 @@ public class Modelo {
 					info+="Propietario: "+resultado.getString(5)+"<br>";
 					info+="Nombre del archivo: "+resultado.getString(1)+"<br>";
 					info+="Uploaded at: "+resultado.getDate(2).toString()+"<br>";
-					info+="Duration: "+resultado.getInt(8)+"<br>";
+					//info+="Duration: "+resultado.getInt(8)+"<br>";
 					PreparedStatement streamStatement = con.prepareStatement("SELECT * FROM stream WHERE video_filename = ? AND video_owner = ?");
 					streamStatement.setString(1, nombreArchivo);
 					streamStatement.setString(2, nombrePropietario);
@@ -378,7 +379,7 @@ public class Modelo {
 					info+="Titulo: "+resultado.getString(3)+"<br>";
 					info+="Descripcion: "+resultado.getString(4)+"<br>";
 					info+="Propietario: "+resultado.getString(5)+"<br>";
-					info+="El video todavía no ha sido procesado!!!!<br>";
+					//info+="El video todavía no ha sido procesado!!!!<br>";
 				}
 			}else {
 				info+="El video solicitado no se ha encontrado!!!!<br>";	
@@ -386,8 +387,9 @@ public class Modelo {
 
 	}catch (SQLException e) {
 		System.err.println(e.getMessage());
+		info+="sql exception: "+e.getMessage();
 	}	
-	return "";
+	return info;
 }
 
 	
@@ -416,6 +418,26 @@ public class Modelo {
 			}	
 		return videos;
 	}
+	
+	public int obtenerNumStreams(String propietario,String archivo) {
+		try {
+		PreparedStatement streamStatement = con.prepareStatement("SELECT COUNT(*) as numstreams FROM stream WHERE video_filename = ? AND video_owner = ?");
+		streamStatement.setString(1, archivo);
+		streamStatement.setString(2, propietario);
+		streamStatement.execute();
+		ResultSet resultadoStreams;
+			resultadoStreams = streamStatement.getResultSet();
+			if(resultadoStreams.next()) {					
+				return resultadoStreams.getInt("numstreams");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return 0;
+		}
+		return 0;
+		
+	}
 
 	
 	//BUSCAR VIDEOS
@@ -430,7 +452,7 @@ public class Modelo {
 			countRS.next();
 			int count=countRS.getInt("rowcount");
 			videos=new String[count];
-			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE uploaded = trueand public = true and (title like ? or description like ?)");
+			PreparedStatement statement = con.prepareStatement("SELECT * FROM video WHERE uploaded = true and public = true and (title like ? or description like ?)");
 			statement.setString(1, "%"+search+"%");
 			statement.setString(2, "%"+search+"%");
 			System.err.println("Search");
@@ -449,6 +471,8 @@ public class Modelo {
 			}	
 		return videos;
 	}	
+	
+	
 	
 	//FUNCIONES AUXILIARES  O DE APOYO
 	
@@ -572,8 +596,18 @@ public class Modelo {
 		return queue.getQueue();
 	}
 	
+	public String getQueueProcess(){
+		System.err.println("GetProcess");
+		//System.err.println(statement.toString());
+		return queue.getProcess();
+	}
+	
 	public void addToQueue(String filename) {
 		queue.addString(filename);
+	}
+	
+	public List<String> getNotifications(String username) {
+		return queue.getNotifications(username);
 	}
 	
 	//CLOSE cierra l conexion con mariadb y cierra l limpiador tambien

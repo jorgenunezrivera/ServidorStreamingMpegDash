@@ -5,9 +5,14 @@
 <head>
 <meta charset="UTF-8">
  <link rel="icon" href="favicon.ico" type="image/x-icon">
+ <script src="getNotifications.js"></script>
 <title>Insert title here</title>
 </head>
-<body>
+<% if((String)session.getAttribute("userName") != null){ %>
+	<body onload="checkNotifications();">
+<% }else{%>
+	<body>
+<% } %>
 <div id="headerDiv">
 <h1>Servidor de video MPEG-DASH</h1>		
 	</div>

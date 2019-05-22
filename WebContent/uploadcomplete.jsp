@@ -24,6 +24,11 @@
 			<h2>Archivo cargado con éxito</h2>
 			<p>El archivo ha sido cargado y esta siendo procesado</p>				
 	</div>
+	<div id="feedback">
+		</div>
+		        <div id="notification">
+		</div>
+		
 </div>
 </body>
 </html>

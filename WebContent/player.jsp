@@ -1,13 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="DashJorge.Modelo" %>
+    <%@ page import="DashJorge.Modelo" %>
 <!doctype html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Servidor Streaming MPEG DASH</title>
 
-	<%String userName=(String)session.getAttribute("userName");
+	<% String userName=(String)session.getAttribute("userName");
 Modelo modelo=Modelo.getInstance();
 String filename=request.getParameter("fileName");
 int lastSlash=filename.lastIndexOf("/");
@@ -18,25 +18,31 @@ video=video.substring(preSlash+1);
 video+="/";
 if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 
-<script src=validateUpload.js></script>
-<script src="https://reference.dashif.org/dash.js/v2.5.0/dist/dash.all.debug.js"></script> <!-- dash.all.min.js -->
-<script src="https://reference.dashif.org/dash.js/v2.5.0/contrib/akamai/controlbar/ControlBar.js"></script>
+
+<script src="dash.all.debug.js"></script> <!-- dash.all.min.js -->
+<script src="ControlBar.js"></script>
 <script>
+
+    
     function startVideo() {
         const url = '<%=filename%>';
+        console.debug("Loading video:");
+        console.debug(url);
         var videoElement = document.querySelector(".videoContainer video");
 
         var player = dashjs.MediaPlayer().create();
+        player.getDebug().setLogToBrowserConsole(false);
         player.initialize(videoElement, url, true);
         var controlbar = new ControlBar(player);
         controlbar.initialize();
     }
 
+
 </script>
 	<style>
 	    video {
-	       width: 900px;
-	       height: 507px;
+	       width: 100%;
+	      
 	    }
 	    body{
 	    	min-height:700px;
@@ -50,7 +56,7 @@ body {
 }
 </style>
 </head>
-<body>
+<body onload="startVideo();">
 
 	<div id=container>
 		<%@include file="newheader.jsp"%>
@@ -96,9 +102,13 @@ body {
 			<%= modelo.obtenerInfoVideo(video, userName)%> 
 				
 			</div>
+			<div id="segmentsInfo"></div>
 
 		</div>
 		<div id="feedback"></div>
+		        <div id="notification">
+		</div>
+		
 	</div>
 </body>
 </html>

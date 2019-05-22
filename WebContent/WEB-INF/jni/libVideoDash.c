@@ -84,7 +84,7 @@ int scale_frame(struct SwsContext* sclCtx,vCodecPars codecPars,AVFrame* outFrame
 int encode_frame_v(AVCodecContext* outVCCtx,AVFrame* outFrame, AVPacket* outPacket);
 int write_packet(AVFormatContext* outFCtx,AVPacket* outPacket);
 int resample_fix_repeated_frame(ResampleContext* resCtx,AVFrame* inFrame);
-
+FILE* outfile;
 
 JNIEXPORT jint JNICALL Java_ffmpeg_1jni_VideoDash_getVideoDash
 (JNIEnv *env, jobject obj, jstring jFilename,jstring jOutputdir){
@@ -124,11 +124,20 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 			{1280,720,21,2496000,4992000,{1,100,8,31}}
 	};
 
-
-
-
 	int repeat=0;
 	int numQualities=0;
+
+	outFCtx=init_out_fctx(outputDir);//+ muxer optons
+	getVideoThumb(inputFileName); //PROBAR
+	char logfilename[256];
+	strcpy(logfilename,outputDir);
+	strcat(logfilename,"/encode.log");
+	outfile=fopen(logfilename,"w");
+	if(!outfile)
+	return -1;
+	stderr=outfile;
+	stdout=outfile;
+
 
 	inFCtx=init_in_fctx(inputFileName);
 	bestIndexes=choose_input_streams(inFCtx);
@@ -160,8 +169,7 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 		}
 	}
 
-	outFCtx=init_out_fctx(outputDir);//+ muxer optons
-	getVideoThumb(inputFileName); //PROBAR
+
 	outACCtx=init_out_a_cod_ctx(outFCtx,inACCtx);
 
 	for(int i=0;i<numQualities;i++){
@@ -267,7 +275,7 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 
 
 	avformat_free_context(outFCtx);
-
+	fclose(outfile);
 	return 0;
 }
 
@@ -794,11 +802,11 @@ int getVideoDash(const char* inputFileName,const char* outputDir){	//
 static void logging(const char *fmt, ...)
 {
 	va_list args;
-	fprintf( stderr, "LOG: " );
+	fprintf( outfile, "LOG: " );
 	va_start( args, fmt );
-	vfprintf( stderr, fmt, args );
+	vfprintf( outfile, fmt, args );
 	va_end( args );
-	fprintf( stderr, "\n" );
+	fprintf( outfile, "\n" );
 }
 
 

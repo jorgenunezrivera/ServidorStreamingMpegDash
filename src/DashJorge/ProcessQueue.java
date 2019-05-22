@@ -2,6 +2,7 @@ package DashJorge;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import Exceptions.CantRegisterVideoException;
@@ -10,13 +11,17 @@ import ffmpeg_jni.VideoDash;
 public class ProcessQueue implements Runnable {
 	List<String> queue;
 	String process;
+
+	List<Notification> notifications;
 	int lastDot;
 	
 	@Override
 	public void run() {
 		queue=new ArrayList<String>();
+		 notifications=new ArrayList<Notification>();
 		while(true) {
 			if(queue.isEmpty()) {
+				process="";
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
@@ -40,8 +45,12 @@ public class ProcessQueue implements Runnable {
 				lastDot = process.lastIndexOf(".");
 				String dirFullName=process.substring(0,lastDot);
 				dirFullName += "-DASH/";
-				
-				VideoDash.videoDash(process,dirFullName);
+				try {
+					VideoDash.videoDash(process,dirFullName);
+				}catch (Exception e) {
+					notifications.add(new Notification(UserName,"Ha habido un error pocesando el video : "+ dirName+ " porque "+e.getMessage()));
+					continue;
+				}
 				
 				File file = new File(process); 
 		        file.delete();
@@ -60,15 +69,16 @@ public class ProcessQueue implements Runnable {
 		        	try {
 		        		Modelo.getInstance().registrarStreamVideo(dirName,UserName,i,bit_rate,width,height);
 		        	} catch (CantRegisterVideoException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+		        		notifications.add(new Notification(UserName,"El video ha sido procesado pero no puede ser registrado: "+ dirName+ " porque "+e.getMessage()));
+		        		continue;
 					}
 		        }
 		        try {
 					Modelo.getInstance().registrarVideoCargado(dirName, UserName,duration);
+					notifications.add(new Notification(UserName,"Video procesado con e xito :"+ dirName));
 				} catch (CantRegisterVideoException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					notifications.add(new Notification(UserName,"El video ha sido procesado pero no puede ser registrado: "+ dirName+ " porque "+e.getMessage()));
 				}
 		    
 			}
@@ -87,6 +97,23 @@ public class ProcessQueue implements Runnable {
 		for(int i=0;i<queue.size();i++) {
 			q[i]=queue.get(i);
 		}
+		return q;
+	}
+	
+	public String getProcess() {
+		return process;
+	}
+	
+	public List<String> getNotifications(String userName) {
+		List<String> q=new ArrayList<String>();
+		Iterator<Notification> i = notifications.iterator(); 
+		while(i.hasNext()) {
+			Notification notification=i.next();
+			if(notification.userName.equals(userName)) {
+				q.add(notification.notificationText);
+				i.remove();
+			}			
+		}		
 		return q;
 	}
 	

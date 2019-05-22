@@ -20,7 +20,12 @@
 	   	   		<h1>Se ha producido un error</h1>
 	   	   		<p> "${param.message}"</p>
 	   	   		<a href="index.jsp" >Atras</a>
-	   	   </div> 		   
+	   	   </div>
+	   	   <div id="feedback">
+		</div>
+		        <div id="notification">
+		</div>
+		 		   
 	   </div>
    </div>
 </body>

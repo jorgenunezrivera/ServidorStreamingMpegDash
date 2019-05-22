@@ -32,6 +32,9 @@
 		</div>
 		<div id="feedback">
 		</div>
+		        <div id="notification">
+		</div>
+		
 	</div>
 </div>
 </body>

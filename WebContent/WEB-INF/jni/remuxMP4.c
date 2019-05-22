@@ -11,9 +11,11 @@ AVFormatContext* init_in_fctx_dash(const char* inputFileName);
 
 JNIEXPORT jint JNICALL Java_ffmpeg_1jni_VideoDash_getVideoMp4
   (JNIEnv *env, jobject obj, jstring jFilename,jstring jOutputdir,jint jStreamIndex){
+	printf("JNI CALL\n");
 	char* fileName=(*env)->GetStringUTFChars(env,jFilename,NULL);
 	char* outputDir=(*env)->GetStringUTFChars(env,jOutputdir,NULL);
 	int streamIndex=jStreamIndex;
+	printf("C CALL\n");
 	return remux_mp4(fileName,outputDir,streamIndex);
 }
 
@@ -125,6 +127,7 @@ JNIEXPORT jint JNICALL Java_ffmpeg_1jni_VideoDash_getStreamHeight  (JNIEnv * env
 //PUEDE DEVOLVER UN STRUCT O TEXTO
 
 int remux_mp4(char* infilename,char* outfilename,int stream_index){
+	printf("Init contexts\n");
 	AVFormatContext* inFC=init_in_fctx_dash(infilename);
 	AVFormatContext* outFC=init_out_fctx_mp4(outfilename);
 	AVCodec* audioCodec = avcodec_find_decoder(inFC->streams[inFC->nb_streams-1]->codecpar->codec_id);

@@ -32,15 +32,15 @@ public class VideoDash {
 
 	
 private native int getVideoDash(String filename,String outDir); 
-private native int getVideoMp4(String filename,String outDir);
+private native int getVideoMp4(String filename,String outDir,int streamIndex);
 private native String getVideoInfo(String filename);
 
 public static int videoDash(String filename,String outDir) {
 	int result = new VideoDash().getVideoDash(filename,outDir);
 	return result;
 }	
-public static int videoMp4(String filename,String outDir) {
-	int result = new VideoDash().getVideoMp4(filename,outDir);
+public static int videoMp4(String filename,String outDir, int streamIndex) {
+	int result = new VideoDash().getVideoMp4(filename,outDir,streamIndex);
 	return result;
 }
 public static String videoInfo(String filename) {

@@ -22,7 +22,10 @@
 			<h2>Cconfirmar correo electrónico</h2>
 			<p>Hemos enviado un email de confirmación .Probablemente este en el correo basura</p>
 			<p><a href="MPDServer/ReSendMail">Volver a enviar correo</a>		    
-		</div>		
+		</div>	
+		        <div id="notification">
+		</div>
+			
 	</div>
 </div>
 </body>

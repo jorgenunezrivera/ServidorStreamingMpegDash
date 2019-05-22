@@ -35,16 +35,19 @@ if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 				owner=video.substring(0,slash);
 				fileName=video.substring(slash+1);				
 			%>
-				<div class="videoContainer">
-					<p><%= video %></p>
+				<div class="videoInfoContainer">
+					<h2><%= video %></h2>
 					<div>
 						<a href="player.jsp?fileName=users/<%= video%>stream.mpd">
 						<img src="users/<%= video%>/pre.jpg"> </img></a></br>
 					</div>	
 					<div>
-						<%=fileName %>
-						<%=owner %>
-						<%= Modelo.getInstance().obtenerInfoVideo(fileName, owner)%>
+                <%String infovideo =  Modelo.getInstance().obtenerInfoVideo(fileName, owner);
+						  int streamInfoIndex=infovideo.indexOf("Video");
+						  String simpleInfo=infovideo.substring(0,streamInfoIndex);
+						  String streamInfo=infovideo.substring(streamInfoIndex);
+						%>
+                    <%= simpleInfo %>
 											
 					</div>					
 					<a href="player.jsp?fileName=users/<%= video%>stream.mpd"><img class="button" src="play.png"/></a>					
@@ -53,6 +56,9 @@ if(userName==null)response.sendRedirect("/ServidorMpegDashJorge/index.jsp"); %>
 		</div>
 		<div id="feedback">
 		</div>
+		        <div id="notification">
+		</div>
+		
 	</div>
 </div>
 </body>

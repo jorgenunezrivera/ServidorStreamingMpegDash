@@ -27,7 +27,6 @@
 		    <p><a href="https://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP">Saber más sobre la tecnologí­a MPEG-DASH</a>		    
 		    <p>Registrate para probar nuestro servicio, o inicia sesión si ya eres usuario</p>
 		</div>
-		<div id="registerDiv">
 			<div id="formDiv">
 			<h3>Rellena estos campos para registrarte.</h3>
 			<form action='MPDServer/register' method='post' >
@@ -39,8 +38,6 @@
 				<!-- Escribir función de validación -->
 			</form>
 			</div>
-		</div>
-		<div id="loginDiv">
 			<div id="formDiv">
 				<h3>Introduce tus credenciales para iniciar sesión.</h3>
 				<form action='MPDServer/login' method='post' >
@@ -50,7 +47,6 @@
 					<!-- Escribir función de validación -->
 				</form>
 			</div>
-		</div>
 		
 		
 		<div id="feedback">
